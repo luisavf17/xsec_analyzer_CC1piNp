@@ -108,7 +108,7 @@ void set_event_branch_addresses(TTree& etree, AnalysisEvent& ev)
 
   set_object_input_branch_address( etree, "trk_theta_v", ev.track_theta_ );
   set_object_input_branch_address( etree, "trk_phi_v", ev.track_phi_ );
-
+  //set_object_input_branch_address( etree, "trk_energy_tot", ev.track_energy_tot_ );
   set_object_input_branch_address( etree, "trk_energy_proton_v",
     ev.track_kinetic_energy_p_ );
 
@@ -160,6 +160,7 @@ void set_event_branch_addresses(TTree& etree, AnalysisEvent& ev)
   SetBranchAddress(etree, "true_nu_vtx_sce_y", &ev.mc_nu_sce_vy_ );
   SetBranchAddress(etree, "true_nu_vtx_sce_z", &ev.mc_nu_sce_vz_ );
 
+  //SetBranchAddress(etree, "trk_energy_tot", &ev.trk_energy_tot_);
   //=============================================
 
   // MC truth pions
@@ -179,6 +180,7 @@ void set_event_branch_addresses(TTree& etree, AnalysisEvent& ev)
   if ( has_genie_mc_weights ) {
     SetBranchAddress(etree, "weightSpline", &ev.spline_weight_ );
     SetBranchAddress(etree, "weightTune", &ev.tuned_cv_weight_ );
+   // SetBranchAddress(etree, "fsi_weight", &ev.fsi_weight_ );
   }
 
   bool has_weight_map = ( etree.GetBranch("weights") != nullptr );
@@ -207,6 +209,9 @@ void set_event_branch_addresses(TTree& etree, AnalysisEvent& ev)
   set_object_input_branch_address( etree, "muonBDTResponses",
     ev.muon_BDT_score_ );
 
+  set_object_input_branch_address( etree, "goldenPionBDTScore",
+    ev.goldenPion_BDT_score_ );
+
   set_object_input_branch_address( etree, "pfp_n_descendents_v", ev.pfp_n_descendents_);
   set_object_input_branch_address( etree, "trk_end_spacepoints_v", ev.trk_end_spacepoints_);
   set_object_input_branch_address( etree, "trk_avg_deflection_stdev_v", ev.trk_avg_deflection_stdev_);
@@ -228,6 +233,13 @@ void set_event_output_branch_addresses(TTree& out_tree, AnalysisEvent& ev,
   set_output_branch_address( out_tree, "tuned_cv_weight",
     &ev.tuned_cv_weight_, create, "tuned_cv_weight/F" );
 
+//   // set_output_branch_address( out_tree, "fsi_weight",
+//   //   &ev.fsi_weight_, create, "fsi_weight/F" );
+// set_output_branch_address(out_tree,
+//     "trk_energy_tot",
+//     &ev.trk_energy_tot_,
+//     create,
+//     "trk_energy_tot/F");
   // If MC weights are available, prepare to store them in the output TTree
   if ( ev.mc_weights_map_ ) {
 
@@ -400,6 +412,9 @@ void set_event_output_branch_addresses(TTree& out_tree, AnalysisEvent& ev,
   set_object_output_branch_address< std::vector<float> >( out_tree,
     "trk_dir_z_v", ev.track_dirz_, create );
 
+  // set_object_output_branch_address< Float_t >( out_tree,
+  //   "trk_energy_tot", ev.track_energy_tot_, create );
+  
   set_object_output_branch_address< std::vector<float> >( out_tree,
     "trk_energy_proton_v", ev.track_kinetic_energy_p_, create );
 
@@ -453,6 +468,9 @@ void set_event_output_branch_addresses(TTree& out_tree, AnalysisEvent& ev,
     "proton_BDT_score", ev.proton_BDT_score_, create );
   set_object_output_branch_address< std::vector<float> >( out_tree,
     "muon_BDT_score", ev.muon_BDT_score_, create );
+
+  set_object_output_branch_address< std::vector<float> >( out_tree,
+    "goldenPion_BDT_score", ev.goldenPion_BDT_score_, create );
 
   set_object_output_branch_address< std::vector<int> >( out_tree,
     "mc_n_inelastic", ev.mc_n_inelastic_, create );

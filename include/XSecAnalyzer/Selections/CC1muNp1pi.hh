@@ -21,6 +21,7 @@ public:
 
 private:
 
+  int categorize_particle( AnalysisEvent* Event, int pfp_idx );
   /* SIGNAL DEFINITION FLAGS */
   //================================================================================================================
 
@@ -46,6 +47,7 @@ private:
   bool sel_muon_contained_;
   bool sel_pion_contained_;
   bool sel_protons_contained_;
+  bool sel_golden_pion_;
 
   bool sel_no_reco_showers_;
   bool sel_min_3_tracks_;
@@ -68,6 +70,14 @@ private:
 
   /* RECO VARIABLES */
   //================================================================================================================
+
+  // double proton_bdt_score_;
+  // int particle_category_;
+  // int particle_candidate_idx_;
+  bool proton_bdt_plot_presel_;
+  double proton_bdt_score_;
+  int ParticleCategory;
+  int proton_bdt_plot_candidate_idx_;
 
   int n_reco_tracks_;
   int n_non_proton_like_;
@@ -192,4 +202,9 @@ private:
   double mc_gki_Total_DeltaPhi3D_pion_;
   double mc_gki_Total_DeltaPhi3D_proton_;
   double mc_gki_Total_DeltaPhi3D_muon_;
+
+  ///////////////////////////////////////////
+  /// Apply weight from Mohamed's studies ///
+  ///////////////////////////////////////////
+  double fsi_weight_;
 };

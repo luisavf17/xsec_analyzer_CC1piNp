@@ -20,6 +20,7 @@
 
 // XSecAnalyzer includes
 #include "XSecAnalyzer/WeightHandler.hh"
+//#include "WeightHandler.hh"
 
 #include "Selections/SelectionBase.hh"
 #include "Selections/SelectionFactory.hh"

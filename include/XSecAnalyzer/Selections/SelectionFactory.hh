@@ -4,7 +4,7 @@
 #include <string>
 
 // XSecAnalyzer includes
-#include "XSecAnalyzer/Selections/SelectionBase.hh"
+#include "./SelectionBase.hh"
 
 class SelectionFactory {
   public:

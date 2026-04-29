@@ -16,9 +16,10 @@ class WienerSVDUnfolder : public Unfolder {
 
     enum RegularizationMatrixType { kIdentity, kFirstDeriv, kSecondDeriv };
 
-    inline WienerSVDUnfolder( bool use_wiener_filter = true,
-      RegularizationMatrixType type = kIdentity ) : Unfolder(),
-      use_filter_( use_wiener_filter ), reg_type_( type ) {}
+    WienerSVDUnfolder( bool use_wiener_filter = true,
+      RegularizationMatrixType type = kIdentity,
+      double norm_type = 0.0 ) : Unfolder(),
+      use_filter_( use_wiener_filter ), reg_type_( type ), Norm_type_( norm_type ) {}
 
     // Trick taken from https://stackoverflow.com/a/18100999
     using Unfolder::unfold;
@@ -35,6 +36,9 @@ class WienerSVDUnfolder : public Unfolder {
 
     inline void set_regularization_type( const RegularizationMatrixType& type )
       { reg_type_ = type; }
+      
+    inline double get_norm_type() const { return Norm_type_; }
+    inline void set_norm_type( double norm_type ) { Norm_type_ = norm_type; }
 
   protected:
 
@@ -46,6 +50,9 @@ class WienerSVDUnfolder : public Unfolder {
     // false, then the usual expression will be replaced with an identity
     // matrix
     bool use_filter_ = true;
+
+    // Parameter to set the Norm_type used to make C
+    double Norm_type_ = 0.0;
 
     // Enum that determines the form to use for the regularization matrix C
     RegularizationMatrixType reg_type_ = kIdentity;

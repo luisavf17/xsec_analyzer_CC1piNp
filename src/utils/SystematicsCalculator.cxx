@@ -92,7 +92,6 @@ SystematicsCalculator::SystematicsCalculator(
   TFile in_tfile( input_respmat_file_name.c_str(), "update" );
 
   TDirectoryFile* root_tdir = nullptr;
-
   // If we haven't been handed a root TDirectoryFile name explicitly, then
   // just grab the first key from the input TFile and assume it's the right
   // one to use.
@@ -115,19 +114,19 @@ SystematicsCalculator::SystematicsCalculator(
   // and the name of the FilePropertiesManager configuration file that
   // is currently active. Replace any '/' characters in the latter to
   // avoid TDirectoryFile path problems.
-  std::string fpm_config_file = fpm.config_file_name();
+  std::string FPM_Config_file = fpm.config_file_name();
   // Do the '/' replacement here in the same way as is done for
   // TDirectoryFile subfolders by the UniverseMaker class
-  fpm_config_file = ntuple_subfolder_from_file_name( fpm_config_file );
+  FPM_Config_file = ntuple_subfolder_from_file_name( FPM_Config_file );
 
   std::cout << "\nInitialising SystematicsCalculator with options:\n";
   std::cout << "\tsyst_config_file_name_: " << syst_config_file_name_ << '\n';
   std::cout << "\tuniverse_file_name: " << input_respmat_file_name << '\n';
-  std::cout << "\tfpm_config_file: " << fpm_config_file << '\n';
+  std::cout << "\tFPM_Config_file: " << FPM_Config_file << '\n';
   std::cout << "\ttdf_name: " << tdf_name << "\n\n\n";
 
   std::string total_subfolder_name = TOTAL_SUBFOLDER_NAME_PREFIX
-    + fpm_config_file;
+    + FPM_Config_file;
 
   // Check whether a set of POT-summed histograms for each universe
   // is already present in the input response matrix file. This is
@@ -610,11 +609,16 @@ void SystematicsCalculator::build_universes( TDirectoryFile& root_tdir ) {
         // file. For these, all four histograms for the "unweighted"
         // universe are always evaluated. Use this to determine the number
         // of true and reco bins easily.
-        auto temp_2d_hist = get_object_unique_ptr< TH2D >(
+        auto temp_2d_hist = get_object_unique_ptr<TH2D>(
           "unweighted_0_2d", *subdir );
 
-        // NOTE: the convention of the UniverseMaker class is to use
-        // x as the true axis and y as the reco axis.
+        if (!temp_2d_hist) {
+          std::cerr << "WARNING: Missing unweighted_0_2d for "
+                    << subdir_name
+                    << " → skipping (likely empty phase space)" << std::endl;
+          continue;
+        }
+
         int num_true_bins = temp_2d_hist->GetXaxis()->GetNbins();
         int num_reco_bins = temp_2d_hist->GetYaxis()->GetNbins();
 

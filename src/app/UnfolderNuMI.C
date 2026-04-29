@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include <algorithm>
 
@@ -34,7 +35,7 @@ struct GeneratorInfo {
 
 const int FontStyle = 132;
 
-
+bool isClosure = false;
 // Helper function that dumps a lot of the results to simple text files.
 // The events_to_xsec_factor is a constant that converts expected true event
 // counts to a total cross section (10^{-39} cm^2 / Ar) via multiplication.
@@ -47,7 +48,7 @@ void dump_overall_results( const UnfoldedMeasurement& result,
   // the units on the unfolded signal event counts)
   TMatrixD unf_signal = *result.unfolded_signal_;
   unf_signal *= events_to_xsec_factor;
-  dump_text_column_vector( "../unfold_output/vec_table_unfolded_signal.txt", unf_signal );
+  dump_text_column_vector( "vec_table_unfolded_signal.txt", unf_signal );
 
   // Dump similar tables for each of the theoretical predictions (and the fake
   // data truth if applicable). Note that this function expects that the
@@ -56,15 +57,15 @@ void dump_overall_results( const UnfoldedMeasurement& result,
     std::string gen_short_name = gen_pair.second->name();
     TMatrixD temp_gen = gen_pair.second->get_prediction();
     temp_gen *= events_to_xsec_factor;
-    dump_text_column_vector( "../unfold_output/vec_table_" + gen_short_name + ".txt",
+    dump_text_column_vector( "vec_table_" + gen_short_name + ".txt",
       temp_gen );
   }
 
   // No unit conversions are necessary for the unfolding, error propagation,
   // and additional smearing matrices since they are dimensionless
-  dump_text_matrix( "../unfold_output/mat_table_unfolding.txt", *result.unfolding_matrix_ );
-  dump_text_matrix( "../unfold_output/mat_table_err_prop.txt", *result.err_prop_matrix_ );
-  dump_text_matrix( "../unfold_output/mat_table_add_smear.txt", *result.add_smear_matrix_ );
+  dump_text_matrix( "mat_table_unfolding.txt", *result.unfolding_matrix_ );
+  dump_text_matrix( "mat_table_err_prop.txt", *result.err_prop_matrix_ );
+  dump_text_matrix( "mat_table_add_smear.txt", *result.add_smear_matrix_ );
 
   // Convert units on the covariance matrices one-by-one and dump them
   for ( const auto& cov_pair : unf_cov_matrix_map ) {
@@ -73,7 +74,7 @@ void dump_overall_results( const UnfoldedMeasurement& result,
     // Note that we need to square the unit conversion factor for the
     // covariance matrix elements
     temp_cov_matrix *= std::pow( events_to_xsec_factor, 2 );
-    dump_text_matrix( "../unfold_output/mat_table_cov_" + name + ".txt", temp_cov_matrix );
+    dump_text_matrix( "mat_table_cov_" + name + ".txt", temp_cov_matrix );
   }
 }
 
@@ -116,6 +117,7 @@ TH1D* get_generator_hist(const TString& filePath, const unsigned int sl_idx, con
     std::vector<TString> plotNames = {
         "TruePnPlot",
         "TrueAlpha3DPlot",
+        "TruePhi3DPlot",
         "TrueTotalPlot",
     };
 
@@ -209,7 +211,7 @@ void multiply_1d_hist_by_matrix(TMatrixD *mat, TH1 *hist)
 void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string OutputDirectory, std::string OutputFileName) {
 
   // set to using fake data
-  bool using_fake_data = false;
+  bool using_fake_data = true;
   bool total_only = false;
   
   std::cout << "\nRunning Unfolder.C with options:" << std::endl;
@@ -228,13 +230,21 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
   auto& sb = *sb_ptr;
 
 
+
   auto xsec = extr->get_unfolded_events();
 
-  double conv_factor = extr->conversion_factor(); 
-
+  double conv_factor = extr->conversion_factor();
+  std::cout << "conv_factor = " << conv_factor << std::endl;
   const auto& pred_map = extr->get_prediction_map();
-
   double total_pot = extr->get_data_pot();
+
+  // Dump overall results to text files (including total xsec in physical units)
+  dump_overall_results(
+    xsec.result_,
+    xsec.unfolded_cov_matrix_map_,
+    conv_factor,
+    pred_map
+  );
 
 
   double A_C_total = 1;
@@ -244,20 +254,24 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
   }
 
   // Truth Generator Plots
-  const std::string genPath = "/exp/uboone/app/users/kwresilo/BuildEventGenerators/FlatTreeAnalyzer/OutputFiles/";
+  const std::string genPath = "/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/FlatTreeAnalyzer/OutputFiles/";
 
   // Format: path, lineColor, lineStyle, lineWidth, name, scaling
   std::vector<GeneratorInfo> generators = {
-    // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    {genPath + "FlatTreeAnalyzerOutput_NuWro.root", kTeal+3, 1, 2, "NuWro", 1.f},
-    {genPath + "FlatTreeAnalyzerOutput_NEUT.root", kOrange-2, 1, 2, "NEUT", 1.f},
-    {genPath + "FlatTreeAnalyzerOutput_GENIE_G18.root", kMagenta-3, 1, 2, "GENIE G18", 1.f},
-    {genPath + "FlatTreeAnalyzerOutput_GiBUU2025.root", kCyan+2, 1, 2, "GiBUU 2025", 1.f},
-    {genPath + "FlatTreeAnalyzerOutput_GENIE_Ar23.root", kRed+1, 1, 2, "GENIE AR23", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_NuWro.root", TColor::GetColor("#D4B308"), 1, 2, "NuWro 21.09.2", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_GiBUU2025.root", kRed-9, 1, 2, "GiBUU 2025", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_NEUT.root", kRed+1, 1, 2, "NEUT 5.4.0.1", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_GENIE_G18.root", kBlue-10, 1, 2, "GENIE G18", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_GENIE_Ar23.root", kBlue-7, 1, 2, "GENIE AR23", 1.f},
+    {genPath + "FlatTreeAnalyzerOutput_GENIE_G18_2025.root", kBlue+2, 1, 2, "GENIE G18 2025", 1.f},
+  
   };
+  if (isClosure) {
+    generators = {};
+  }
 
-  for (int sl_idx = 0; sl_idx < 3; sl_idx++) {
-
+  for (int sl_idx = 0; sl_idx < 4; sl_idx++) {
+    
     std::cout << "\n\nOn slice index " << sl_idx << "\n" << std::endl;
     const auto& slice = sb.slices_.at( sl_idx ); // only considering single slice
 
@@ -270,6 +284,7 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
     std::map< std::string, std::unique_ptr<SliceHistogram> > sh_cov_map;
     for ( const auto& uc_pair : xsec.unfolded_cov_matrix_map_ ) {
       const auto& uc_name = uc_pair.first;
+      std::cout << uc_name << std::endl;
       const auto& uc_matrix = uc_pair.second;
 
       auto& uc_ptr = sh_cov_map[ uc_name ];
@@ -382,11 +397,11 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
         slice_y_latex_title += "^{" + std::to_string( var_count ) + "}";
       }
       slice_y_title += "#sigma/" + diff_xsec_denom;
-      slice_y_latex_title += "\\sigma / " + diff_xsec_denom_latex;
+      slice_y_latex_title += "#sigma / " + diff_xsec_denom_latex;
     }
     else {
       slice_y_title += "#sigma";
-      slice_y_latex_title += "\\sigma";
+      slice_y_latex_title += "#sigma";
     }
     slice_y_title += " [10^{-38} cm^{2}" + diff_xsec_units_denom + " / Ar]";
     slice_y_latex_title += "\\text{ }(10^{-39}\\text{ cm}^{2}"
@@ -430,6 +445,49 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
       slice_h->transform( trans_mat );
     }
 
+    // Save the normalized unfolded signal for this slice to a text file
+    // with statistical and systematic uncertainties separated
+    std::string norm_signal_filename = "vec_table_unfolded_signal_normalized_slice_" 
+      + std::to_string(sl_idx) + ".txt";
+    std::ofstream norm_signal_file(norm_signal_filename);
+    norm_signal_file << "# Normalized unfolded cross section for slice " << sl_idx << "\n";
+    norm_signal_file << "# Units: 10^{-38} cm^{2}" << diff_xsec_units_denom << " / Ar\n";
+    norm_signal_file << "# Columns: bin_index  cross_section  total_error  stat_error  syst_error\n";
+    norm_signal_file << "numXbins " << num_slice_bins << "\n";
+    
+    // Calculate statistical and systematic uncertainties for each bin
+    for (int b = 0; b < num_slice_bins; ++b) {
+      double bin_content = slice_unf->hist_->GetBinContent(b + 1);
+      double total_error = slice_unf->hist_->GetBinError(b + 1);
+      
+      // Calculate statistical uncertainty from stat-only covariance matrices
+      double stat_variance = 0.0;
+      std::vector<std::string> stat_sources = {"MCstats", "EXTstats", "BNBstats"};
+      for (const auto& stat_name : stat_sources) {
+        auto stat_it = sh_cov_map.find(stat_name);
+        if (stat_it != sh_cov_map.end()) {
+          double bin_var = stat_it->second->hist_->GetBinError(b + 1);
+          stat_variance += bin_var * bin_var;
+        }
+      }
+      double stat_error = std::sqrt(stat_variance);
+      
+      // Calculate systematic uncertainty
+      double syst_error = 0.0;
+      if (total_error * total_error >= stat_variance) {
+        syst_error = std::sqrt(total_error * total_error - stat_variance);
+      } else {
+        // Handle numerical precision issues
+        syst_error = 0.0;
+        stat_error = total_error;
+      }
+      
+      norm_signal_file << b << "  " << std::scientific << std::setprecision(17) 
+        << bin_content << "  " << total_error << "  " << stat_error << "  " << syst_error << "\n";
+    }
+    norm_signal_file.close();
+    std::cout << "Saved normalized signal to " << norm_signal_filename << std::endl;
+
 
     // Keys are generator legend labels, values are the results of a chi^2
     // test compared to the unfolded data (or, in the case of the unfolded
@@ -457,13 +515,28 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
       // Store the chi^2 results in the map
       const auto& chi2_result = chi2_map[ name ] = slice_h->get_chi2( *other );
 
-      std::cout << name << ": \u03C7\u00b2 = "
-        << chi2_result.chi2_ << '/' << chi2_result.num_bins_ << " bin";
-      if ( chi2_result.num_bins_ > 1 ) std::cout << 's';
-      if ( chi2_result.num_bins_ > 1 ) std::cout << ", p-value = " << chi2_result.p_value_ << '\n';
+      double chi2_obs = chi2_result.chi2_;
+      int ndf = chi2_result.num_bins_;
+      double p_value = chi2_result.p_value_;
+
+      // Convert to Gaussian-equivalent sigma (one-sided)
+      double sigma = 0.0;
+      if (p_value > 0.0) {
+          sigma = TMath::NormQuantile(1.0 - p_value);
+      } else {
+          sigma = std::numeric_limits<double>::infinity();
+      }
+
+      std::cout << name << ":" << std::endl;
+      std::cout << "  χ² = " << std::fixed << std::setprecision(2)
+                << chi2_obs << " / " << ndf << " bins" << std::endl;
+      std::cout << "  p-value = " << std::scientific << std::setprecision(3)
+                << p_value << std::endl;
+      std::cout << "  significance = " << std::fixed << std::setprecision(2)
+                << sigma << " σ" << std::endl;
     }
 
-    TCanvas *c1 = new TCanvas(std::to_string(sl_idx).c_str(), std::to_string(sl_idx).c_str(), 1700, 900);
+    TCanvas *c1 = new TCanvas(std::to_string(sl_idx).c_str(), std::to_string(sl_idx).c_str(), 3000, 1800);
     gStyle->SetLegendBorderSize(0);
     gStyle->SetCanvasPreferGL(0);
 
@@ -528,8 +601,9 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
 
     if ( using_fake_data ) {
       slice_truth->hist_->SetStats( false );
-      slice_truth->hist_->SetLineColor( kOrange );
-      slice_truth->hist_->SetLineWidth( 5 );
+      slice_truth->hist_->SetLineColor( kOrange + 1);
+      slice_truth->hist_->SetLineWidth( 3 );
+      slice_truth->hist_->SetLineStyle( 7 );
       slice_truth->hist_->Draw( "hist same" );
     }
 
@@ -556,8 +630,17 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
         }
     }
 
-    TLegend *lg = new TLegend(1 - rightMargin + 0.02, 0.09, 1 - 0.02, 0.93);
+    //if isClosure have the legend within the plot area, otherwise have it outside
+    TLegend *lg;
+    if (isClosure) {
+      lg = new TLegend(0.25, 0.65, 0.65, 0.87);
+    }
+    else {
+      lg = new TLegend(1 - rightMargin + 0.02, 0.09, 1 - 0.02, 0.93);
+    }
 
+    //TLegend *lg = new TLegend(1 - rightMargin + 0.02, 0.09, 1 - 0.02, 0.93);
+    
     // Add in generator predictions
     // loop through generators
     for(const auto& generator : generators) {
@@ -587,7 +670,9 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
         SliceHistogram *gen_slice_h = SliceHistogram::slice_histogram_from_histogram(*gen_hist);
         const auto& chi2_result = gen_slice_h->get_chi2( *slice_unf );
         std::cout << generator.name << ": " << std::endl;
-        std::cout << chi2_result.chi2_ << ", p-value = " << chi2_result.p_value_ << std::endl;
+        std::cout << "  χ² = " << std::fixed << std::setprecision(2) << chi2_result.chi2_ 
+                  << " / " << chi2_result.num_bins_ << " bins" << std::endl;
+        std::cout << "  p-value = " << std::setprecision(4) << chi2_result.p_value_ << std::endl;
 
         std::ostringstream oss;
         oss << "#splitline{" << generator.name << "}{" 
@@ -609,11 +694,12 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
 
       std::string name_clean = name;
 
-      if (name_clean == "truth") name_clean = "NuWro Truth";
+      if (name_clean == "truth") name_clean = "Fake Data Truth";
+      // if (name_clean == "truth") name_clean = "NuWro Truth";
       //if (name_clean == "truth") name_clean = "Truth";
       if (name_clean == "MicroBooNE Tune") name_clean = "GENIE G18 #muB Tune"; // _10a_02_11a
       //if (label == "unfolded data") label = "Unfolded Fake Data";
-      if (name_clean == "unfolded data") name_clean = "Unfolded Data";
+      if (name_clean == "unfolded data") name_clean = "Unfolded Fake Data";
 
       std::ostringstream oss;
       
@@ -659,7 +745,7 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
     // Draw Legend
     lg->SetTextFont(FontStyle);
     lg->SetTextSize(0.042); // Make legend text smaller
-    lg->Draw("same");
+    lg->SetTextAlign(32);
 
      // Create the label text with the POT value
     TLatex label;
@@ -667,11 +753,18 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
     label.SetNDC(); // Set position in normalized coordinates
     char labelText1[100];
     char labelText2[100];
-    sprintf(labelText1, "MicroBooNE BNB %.2e POT", total_pot);
-    //sprintf(labelText2, "%.2e POT", total_pot);
+    // if is closure add this as legend title instead
+    // if (isClosure){
+    //   //lg->SetHeader(Form("MicroBooNE Simulation %.2e POT", total_pot));
 
-    label.SetTextFont(FontStyle); // Set font style for labelText1 and labelText2
-    label.DrawLatex(0.35, 0.95, labelText1);
+    // } else {
+    //   sprintf(labelText1, "MicroBooNE Simulation %.2e POT", total_pot);
+    //   label.SetTextFont(FontStyle); // Set font style for labelText1 and labelText2
+    //   label.DrawLatex(0.3, 0.95, labelText1);
+    // }
+    //sprintf(labelText2, "%.2e POT", total_pot);
+    lg->Draw("same");
+    
     //label.DrawLatex(0.4, 0.90, labelText2);
     /*if (!chi2_ss.str().empty()) {
       sprintf(labelText3, "%s", chi2_ss.str().c_str());
@@ -694,28 +787,41 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
     // write to file
     std::string plot_name = "plot_slice_" + std::to_string(sl_idx) + ".pdf";
     c1->SaveAs(plot_name.c_str());
+    std::string plot_name_png = "plot_slice_" + std::to_string(sl_idx) + ".png";
+    c1->SaveAs(plot_name_png.c_str());
 
   }
   
-  // create plot of A_C matrix
-  const Int_t n = 3;
-  Double_t bins[n+1] = {0, 6, 12, 13};
-  const Char_t *labels[n] = {"p_{n}", "#alpha_{3D}", "Total"};
+  // create plot of A_C matrix (excluding the last bin which is total rate)
+  const Int_t n = 4;
+  const Int_t n_plot_slices = 3; // Only p_n and alpha_3D, not Total
+  Double_t bins[n+1] = {0, 6, 12, 17, 18};
+  const Char_t *labels[n] = {"p_{n}", "#alpha_{3D}", "#phi_{3D}", "Total"};
 
-  // Convert TMatrixD to TH2D 
+  // Convert TMatrixD to TH2D, excluding the last bin
   TMatrixD temp_ac = *xsec.result_.add_smear_matrix_;
-  TH2D h_A_C = TMatrixDToTH2D(temp_ac, "h_A_C", "", 0, temp_ac.GetNcols(), 0, temp_ac.GetNrows());
+  int n_ac_bins = temp_ac.GetNrows();
+  int n_ac_plot_bins = n_ac_bins - 1; // Exclude the last bin (total rate)
+  
+  TH2D h_A_C("h_A_C", "", n_ac_plot_bins, 0, n_ac_plot_bins, n_ac_plot_bins, 0, n_ac_plot_bins);
+  for (int i = 0; i < n_ac_plot_bins; ++i) {
+      for (int j = 0; j < n_ac_plot_bins; ++j) {
+          h_A_C.SetBinContent(i+1, j+1, temp_ac(i, j));
+      }
+  }
 
   gStyle->SetPalette(kBird);
 
-  TCanvas *c_ac = new TCanvas("c_ac","A_C Matrix",200,10,1920,1080);
+  TCanvas *c_ac = new TCanvas("c_ac","A_C Matrix",200,10,4000,4000);
   c_ac->SetRightMargin(0.15);
   c_ac->SetTopMargin(0.125);
+  c_ac->SetBottomMargin(0.12);
+  c_ac->SetLeftMargin(0.12);
   h_A_C.SetStats(0); // Disable the statistics box
   //h_A_C.GetZaxis()->SetRangeUser(-0.5, 1.5); // Set the z range
   h_A_C.Draw("colz");
-  h_A_C.GetXaxis()->SetTitle("Bin Number");
-  h_A_C.GetYaxis()->SetTitle("Bin Number");
+  h_A_C.GetXaxis()->SetTitle("True Bin Number");
+  h_A_C.GetYaxis()->SetTitle("Regularised True Bin Number");
   h_A_C.GetXaxis()->CenterTitle();
   h_A_C.GetYaxis()->CenterTitle();
   //h_A_C.GetZaxis()->SetTitle("Regularization");
@@ -734,18 +840,18 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
   h_A_C.GetZaxis()->SetLabelSize(0.045);
   c_ac->Update();
 
-  // Draw vertical and horizontal lines at the bin edges
-  for (Int_t i = 1; i < n; i++) {
-      TLine *vline = new TLine(bins[i], 0, bins[i], h_A_C.GetNbinsY());
+  // Draw vertical and horizontal lines at the bin edges (only for the first two slices)
+  for (Int_t i = 1; i < n_plot_slices; i++) {
+      TLine *vline = new TLine(bins[i], 0, bins[i], n_ac_plot_bins);
       vline->SetLineColor(kBlack);
       vline->Draw();
 
-      TLine *hline = new TLine(0, bins[i], h_A_C.GetNbinsX(), bins[i]);
+      TLine *hline = new TLine(0, bins[i], n_ac_plot_bins, bins[i]);
       hline->SetLineColor(kBlack);
       hline->Draw();
   }
 
-  for (Int_t i = 1; i <= n; i++) {
+  for (Int_t i = 1; i <= n_plot_slices; i++) {
       // Draw white dotted lines from bins[i-1] to bins[i]
       TLine *vline_dotted1 = new TLine(bins[i], bins[i-1], bins[i], bins[i]);
       vline_dotted1->SetLineColor(kWhite);
@@ -757,7 +863,7 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
       hline_dotted1->SetLineStyle(2); // Set line style to dotted
       hline_dotted1->Draw();
 
-      if(i<n)
+      if(i<n_plot_slices)
       {
           TLine *vline_dotted2 = new TLine(bins[i], bins[i+1], bins[i], bins[i]);
           vline_dotted2->SetLineColor(kWhite);
@@ -771,11 +877,11 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
       }
   }
 
-  // Add labels in the middle of the intervals
-  for (Int_t i = 0; i < n; i++) {
+  // Add labels in the middle of the intervals (only for the first two slices)
+  for (Int_t i = 0; i < n_plot_slices; i++) {
       Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
-      TLatex *text = new TLatex(midPoint, 1.03*h_A_C.GetNbinsY(), labels[i]);
-      text->SetTextSize(0.04); // Set text size to something smaller
+      TLatex *text = new TLatex(midPoint, 1.03*n_ac_plot_bins, labels[i]);
+      text->SetTextSize(0.03); // Set text size to something smaller
       text->SetTextAlign(22); // Center alignment
       text->SetTextFont(FontStyle); // Set font style to FontStyle
       text->Draw();
@@ -790,7 +896,7 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
           if (bin_content == 0) continue;
 
           TLatex* latex = new TLatex(h_A_C.GetXaxis()->GetBinCenter(i+1), h_A_C.GetYaxis()->GetBinCenter(j+1), Form("%.3f%",bin_content));
-          latex->SetTextFont(42);
+          latex->SetTextFont(132);
           latex->SetTextSize(0.03);
           latex->SetTextAlign(22);
           latex->Draw();
@@ -800,6 +906,428 @@ void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string
   h_A_C.Write();
 
   c_ac->SaveAs("plot_regularization_matrix.pdf");
+  c_ac->SaveAs("plot_regularization_matrix.png");
+
+  // Plot the response matrix (smearing matrix), excluding the last true and reco bins (total rate)
+  std::cout << "\nPlotting response matrix..." << std::endl;
+  TMatrixD temp_response = *xsec.result_.response_matrix_;
+  int n_response_rows = temp_response.GetNrows(); // reco bins
+  int n_response_cols = temp_response.GetNcols(); // true bins
+  int n_response_plot_cols = n_response_cols - 1; // Exclude the last true bin (total rate)
+  int n_response_plot_rows = n_response_rows - 1; // Exclude the last reco bin (total rate)
+  
+  // The response matrix is reco x true, but we want to exclude the last bins (total rate)
+  // Check dimensions first
+  std::cout << "Response matrix dimensions: " << n_response_rows << " (reco) x " << n_response_cols << " (true)" << std::endl;
+  std::cout << "Plotting: " << n_response_plot_rows << " (reco, excluding total) x " << n_response_plot_cols << " (true, excluding total)" << std::endl;
+  
+  TH2D h_response("h_response", "", n_response_plot_cols, 0, n_response_plot_cols, n_response_plot_rows, 0, n_response_plot_rows);
+  for (int i = 0; i < n_response_plot_rows; ++i) {
+      for (int j = 0; j < n_response_plot_cols; ++j) {
+          h_response.SetBinContent(j+1, i+1, temp_response(i, j));
+      }
+  }
+
+  TCanvas *c_response = new TCanvas("c_response","Response Matrix",200,10,1920,1080);
+  c_response->SetRightMargin(0.15);
+  c_response->SetTopMargin(0.125);
+  c_response->SetBottomMargin(0.12);
+  c_response->SetLeftMargin(0.12);
+  h_response.SetStats(0);
+  h_response.Draw("colz");
+  h_response.GetXaxis()->SetTitle("True Bin Number");
+  h_response.GetYaxis()->SetTitle("Reco Bin Number");
+  h_response.GetXaxis()->CenterTitle();
+  h_response.GetYaxis()->CenterTitle();
+  h_response.GetXaxis()->SetTitleFont(FontStyle);
+  h_response.GetYaxis()->SetTitleFont(FontStyle);
+  h_response.GetZaxis()->SetTitleFont(FontStyle);
+  h_response.GetXaxis()->SetLabelFont(FontStyle);
+  h_response.GetYaxis()->SetLabelFont(FontStyle);
+  h_response.GetZaxis()->SetLabelFont(FontStyle);
+
+  h_response.GetXaxis()->SetTitleSize(0.05);
+  h_response.GetYaxis()->SetTitleSize(0.05);
+  h_response.GetZaxis()->SetTitleSize(0.05);
+  h_response.GetXaxis()->SetLabelSize(0.045);
+  h_response.GetYaxis()->SetLabelSize(0.045);
+  h_response.GetZaxis()->SetLabelSize(0.045);
+  c_response->Update();
+
+  // Draw vertical and horizontal lines at the bin edges for slice boundaries
+  for (Int_t i = 1; i < n_plot_slices; i++) {
+      // Vertical lines for true bins (x-axis)
+      TLine *vline = new TLine(bins[i], 0, bins[i], n_response_plot_rows);
+      vline->SetLineColor(kBlack);
+      vline->Draw();
+
+      // Horizontal lines for reco bins (y-axis)
+      TLine *hline = new TLine(0, bins[i], n_response_plot_cols, bins[i]);
+      hline->SetLineColor(kBlack);
+      hline->Draw();
+  }
+
+  for (Int_t i = 1; i <= n_plot_slices; i++) {
+      // Draw white dotted lines from bins[i-1] to bins[i]
+      TLine *vline_dotted1 = new TLine(bins[i], bins[i-1], bins[i], bins[i]);
+      vline_dotted1->SetLineColor(kWhite);
+      vline_dotted1->SetLineStyle(2);
+      vline_dotted1->Draw();
+
+      TLine *hline_dotted1 = new TLine(bins[i-1], bins[i], bins[i], bins[i]);
+      hline_dotted1->SetLineColor(kWhite);
+      hline_dotted1->SetLineStyle(2);
+      hline_dotted1->Draw();
+
+      if(i<n_plot_slices)
+      {
+          TLine *vline_dotted2 = new TLine(bins[i], bins[i+1], bins[i], bins[i]);
+          vline_dotted2->SetLineColor(kWhite);
+          vline_dotted2->SetLineStyle(2);
+          vline_dotted2->Draw();
+
+          TLine *hline_dotted2 = new TLine(bins[i+1], bins[i], bins[i], bins[i]);
+          hline_dotted2->SetLineColor(kWhite);
+          hline_dotted2->SetLineStyle(2);
+          hline_dotted2->Draw();
+      }
+  }
+
+  // Add labels in the middle of the intervals on x-axis (true bins)
+  for (Int_t i = 0; i < n_plot_slices; i++) {
+      Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
+      TLatex *text = new TLatex(midPoint, 1.03*n_response_plot_rows, labels[i]);
+      text->SetTextSize(0.04);
+      text->SetTextAlign(22);
+      text->SetTextFont(FontStyle);
+      text->Draw();
+  }
+
+  // Add labels on y-axis (reco bins) - rotate them
+  for (Int_t i = 0; i < n_plot_slices; i++) {
+      Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
+      TLatex *text = new TLatex(-0.03*n_response_plot_cols, midPoint, labels[i]);
+      text->SetTextSize(0.04);
+      text->SetTextAlign(32);
+      text->SetTextFont(FontStyle);
+      text->SetTextAngle(90);
+      text->Draw();
+  }
+
+  h_response.Write();
+  c_response->SaveAs("plot_response_matrix.pdf");
+  c_response->SaveAs("plot_response_matrix.png");
+  std::cout << "Response matrix plot saved to plot_response_matrix.pdf" << std::endl;
+
+  // Plot the total covariance and correlation matrices after unfolding (excluding the last bin which is total rate)
+  std::cout << "\nPreparing covariance and correlation matrices..." << std::endl;
+  TMatrixD temp_cov = *xsec.result_.cov_matrix_;
+  int n_cov_bins = temp_cov.GetNrows();
+  int n_plot_bins = n_cov_bins - 1; // Exclude the last bin (total rate)
+  
+  // Create covariance matrix histogram (excluding last bin)
+  TH2D h_cov("h_cov", "", n_plot_bins, 0, n_plot_bins, n_plot_bins, 0, n_plot_bins);
+  
+  // Calculate correlation matrix: corr[i][j] = cov[i][j] / sqrt(cov[i][i] * cov[j][j])
+  TH2D h_corr("h_corr", "", n_plot_bins, 0, n_plot_bins, n_plot_bins, 0, n_plot_bins);
+  
+  for (int i = 0; i < n_plot_bins; i++) {
+    for (int j = 0; j < n_plot_bins; j++) {
+      double cov_ij = temp_cov(i, j);
+      double cov_ii = temp_cov(i, i);
+      double cov_jj = temp_cov(j, j);
+      
+      // Fill covariance matrix
+      h_cov.SetBinContent(i+1, j+1, cov_ij);
+      
+      // Fill correlation matrix
+      double corr_ij = 0.0;
+      if (cov_ii > 0 && cov_jj > 0) {
+        corr_ij = cov_ij / std::sqrt(cov_ii * cov_jj);
+      }
+      h_corr.SetBinContent(i+1, j+1, corr_ij);
+    }
+  }
+
+  // Plot covariance matrix
+  TCanvas *c_cov = new TCanvas("c_cov","Total Covariance Matrix (After Unfolding)",200,10,6000,4000);
+  c_cov->SetRightMargin(0.15);
+  c_cov->SetTopMargin(0.125);
+  c_cov->SetBottomMargin(0.12);
+  c_cov->SetLeftMargin(0.12);
+  h_cov.SetStats(0); // Disable the statistics box
+  gStyle->SetPaintTextFormat(".2e");  // scientific format for covariance
+  gStyle->SetTextFont(FontStyle);
+  h_cov.SetMarkerSize(0.8);
+  h_cov.Draw("colz");
+  h_cov.Draw("TEXT SAME");
+  h_cov.GetYaxis()->SetTitle("Regularised True Bin Number");
+  h_cov.GetXaxis()->SetTitle("True Bin Number");
+  h_cov.GetZaxis()->SetTitle("(10^{-38} cm^{2}/Ar)^{2}");
+  h_cov.GetXaxis()->CenterTitle();
+  h_cov.GetYaxis()->CenterTitle();
+  h_cov.GetZaxis()->CenterTitle();
+  h_cov.GetZaxis()->SetTitleOffset(1.2);
+  h_cov.GetXaxis()->SetTitleFont(FontStyle);
+  h_cov.GetYaxis()->SetTitleFont(FontStyle);
+  h_cov.GetZaxis()->SetTitleFont(FontStyle);
+  h_cov.GetXaxis()->SetLabelFont(FontStyle);
+  h_cov.GetYaxis()->SetLabelFont(FontStyle);
+  h_cov.GetZaxis()->SetLabelFont(FontStyle);
+
+  h_cov.GetXaxis()->SetTitleSize(0.03);
+  h_cov.GetYaxis()->SetTitleSize(0.03);
+  h_cov.GetZaxis()->SetTitleSize(0.03);
+  h_cov.GetXaxis()->SetLabelSize(0.03);
+  h_cov.GetYaxis()->SetLabelSize(0.03);
+  h_cov.GetZaxis()->SetLabelSize(0.03);
+  c_cov->Update();
+
+  // Draw vertical and horizontal lines at the bin edges for slice boundaries
+  // Use n_plot_slices already defined earlier
+  for (Int_t i = 1; i < n_plot_slices; i++) {
+      TLine *vline = new TLine(bins[i], 0, bins[i], n_plot_bins);
+      vline->SetLineColor(kBlack);
+      vline->Draw();
+
+      TLine *hline = new TLine(0, bins[i], n_plot_bins, bins[i]);
+      hline->SetLineColor(kBlack);
+      hline->Draw();
+  }
+
+  for (Int_t i = 1; i <= n_plot_slices; i++) {
+      // Draw white dotted lines from bins[i-1] to bins[i]
+      TLine *vline_dotted1 = new TLine(bins[i], bins[i-1], bins[i], bins[i]);
+      vline_dotted1->SetLineColor(kWhite);
+      vline_dotted1->SetLineStyle(2);
+      vline_dotted1->Draw();
+
+      TLine *hline_dotted1 = new TLine(bins[i-1], bins[i], bins[i], bins[i]);
+      hline_dotted1->SetLineColor(kWhite);
+      hline_dotted1->SetLineStyle(2);
+      hline_dotted1->Draw();
+
+      if(i<n_plot_slices)
+      {
+          TLine *vline_dotted2 = new TLine(bins[i], bins[i+1], bins[i], bins[i]);
+          vline_dotted2->SetLineColor(kWhite);
+          vline_dotted2->SetLineStyle(2);
+          vline_dotted2->Draw();
+
+          TLine *hline_dotted2 = new TLine(bins[i+1], bins[i], bins[i], bins[i]);
+          hline_dotted2->SetLineColor(kWhite);
+          hline_dotted2->SetLineStyle(2);
+          hline_dotted2->Draw();
+      }
+  }
+
+  // Add labels in the middle of the intervals
+  for (Int_t i = 0; i < n_plot_slices; i++) {
+      Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
+      TLatex *text = new TLatex(midPoint, 1.03*n_plot_bins, labels[i]);
+      text->SetTextSize(0.04);
+      text->SetTextAlign(22);
+      text->SetTextFont(FontStyle);
+      text->Draw();
+  }
+
+  h_cov.Write();
+  c_cov->SaveAs("plot_total_covariance_matrix.pdf");
+  c_cov->SaveAs("plot_total_covariance_matrix.png");
+  std::cout << "Covariance matrix plot saved to plot_total_covariance_matrix.pdf" << std::endl;
+
+  // Plot correlation matrix
+  TCanvas *c_corr = new TCanvas("c_corr","Total Correlation Matrix (After Unfolding)",200,10,6000,5000);
+  c_corr->SetRightMargin(0.15);
+  c_corr->SetTopMargin(0.125);
+  c_corr->SetBottomMargin(0.12);
+  c_corr->SetLeftMargin(0.12);
+  h_corr.SetStats(0); // Disable the statistics box
+  h_corr.GetZaxis()->SetRangeUser(-1.0, 1.0); // Correlation is between -1 and 1
+  gStyle->SetPaintTextFormat(".2f");  // 2 decimal places for correlation
+  gStyle->SetTextFont(FontStyle);
+  h_corr.SetMarkerSize(1);
+  h_corr.Draw("colz");
+  h_corr.Draw("TEXT SAME");
+  h_corr.GetYaxis()->SetTitle("Regularised True Bin Number");
+  h_corr.GetXaxis()->SetTitle("True Bin Number");
+  h_corr.GetZaxis()->SetTitle("Correlation Coefficient");
+  h_corr.GetXaxis()->CenterTitle();
+  h_corr.GetYaxis()->CenterTitle();
+  h_corr.GetZaxis()->CenterTitle();
+  h_corr.GetZaxis()->SetTitleOffset(1.1);
+  h_corr.GetZaxis()->SetLabelFont(FontStyle);
+  h_corr.GetXaxis()->SetTitleFont(FontStyle);
+  h_corr.GetYaxis()->SetTitleFont(FontStyle);
+  h_corr.GetZaxis()->SetTitleFont(FontStyle);
+  h_corr.GetXaxis()->SetLabelFont(FontStyle);
+  h_corr.GetYaxis()->SetLabelFont(FontStyle);
+  h_corr.GetZaxis()->SetLabelFont(FontStyle);
+
+  h_corr.GetXaxis()->SetTitleSize(0.03);
+  h_corr.GetYaxis()->SetTitleSize(0.03);
+  h_corr.GetZaxis()->SetTitleSize(0.03);
+  h_corr.GetXaxis()->SetLabelSize(0.03);
+  h_corr.GetYaxis()->SetLabelSize(0.03);
+  h_corr.GetZaxis()->SetLabelSize(0.03);
+  c_corr->Update();
+
+  // Draw vertical and horizontal lines at the bin edges for slice boundaries
+  for (Int_t i = 1; i < n_plot_slices; i++) {
+      TLine *vline = new TLine(bins[i], 0, bins[i], n_plot_bins);
+      vline->SetLineColor(kBlack);
+      vline->Draw();
+
+      TLine *hline = new TLine(0, bins[i], n_plot_bins, bins[i]);
+      hline->SetLineColor(kBlack);
+      hline->Draw();
+  }
+
+  for (Int_t i = 1; i <= n_plot_slices; i++) {
+      // Draw white dotted lines from bins[i-1] to bins[i]
+      TLine *vline_dotted1 = new TLine(bins[i], bins[i-1], bins[i], bins[i]);
+      vline_dotted1->SetLineColor(kWhite);
+      vline_dotted1->SetLineStyle(2); // Set line style to dotted
+      vline_dotted1->Draw();
+
+      TLine *hline_dotted1 = new TLine(bins[i-1], bins[i], bins[i], bins[i]);
+      hline_dotted1->SetLineColor(kWhite);
+      hline_dotted1->SetLineStyle(2); // Set line style to dotted
+      hline_dotted1->Draw();
+
+      if(i<n_plot_slices)
+      {
+          TLine *vline_dotted2 = new TLine(bins[i], bins[i+1], bins[i], bins[i]);
+          vline_dotted2->SetLineColor(kWhite);
+          vline_dotted2->SetLineStyle(2); // Set line style to dotted
+          vline_dotted2->Draw();
+
+          TLine *hline_dotted2 = new TLine(bins[i+1], bins[i], bins[i], bins[i]);
+          hline_dotted2->SetLineColor(kWhite);
+          hline_dotted2->SetLineStyle(2); // Set line style to dotted
+          hline_dotted2->Draw();
+      }
+  }
+
+  // Add labels in the middle of the intervals (only for the first two slices)
+  for (Int_t i = 0; i < n_plot_slices; i++) {
+      Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
+      TLatex *text = new TLatex(midPoint, 1.03*n_plot_bins, labels[i]);
+      text->SetTextSize(0.04); // Set text size to something smaller
+      text->SetTextAlign(22); // Center alignment
+      text->SetTextFont(FontStyle); // Set font style to FontStyle
+      text->Draw();
+  }
+
+  h_corr.Write();
+
+  c_corr->SaveAs("plot_total_correlation_matrix.pdf");
+  c_corr->SaveAs("plot_total_correlation_matrix.png");
+  std::cout << "Correlation matrix plot saved to plot_total_correlation_matrix.pdf" << std::endl;
+
+  // Plot fractional covariance matrix
+  std::cout << "\nPreparing fractional covariance matrix..." << std::endl;
+  
+  // Get bin contents from unfolded signal (excluding the last bin which is total rate)
+  TMatrixD unf_signal = *xsec.result_.unfolded_signal_;
+  std::vector<double> bin_contents(n_plot_bins);
+  for (int i = 0; i < n_plot_bins; i++) {
+    bin_contents[i] = unf_signal(i, 0);
+  }
+  
+  // Create fractional covariance matrix: frac_cov[i][j] = cov[i][j] / (bin_contents[i] * bin_contents[j])
+  TH2D h_frac_cov("h_frac_cov", "", n_plot_bins, 0, n_plot_bins, n_plot_bins, 0, n_plot_bins);
+  
+  for (int i = 0; i < n_plot_bins; i++) {
+    for (int j = 0; j < n_plot_bins; j++) {
+      double cov_ij = temp_cov(i, j);
+      
+      // Fill fractional covariance (dimensionless)
+      double frac_cov_ij = 0.0;
+      if (bin_contents[i] > 0 && bin_contents[j] > 0) {
+        frac_cov_ij = cov_ij / (bin_contents[i] * bin_contents[j]);
+      }
+      h_frac_cov.SetBinContent(i+1, j+1, frac_cov_ij);
+    }
+  }
+  
+  TCanvas *c_frac_cov = new TCanvas("c_frac_cov","Total Fractional Covariance Matrix (After Unfolding)",200,10,1920,1080);
+  c_frac_cov->SetRightMargin(0.15);
+  c_frac_cov->SetTopMargin(0.125);
+  c_frac_cov->SetBottomMargin(0.12);
+  c_frac_cov->SetLeftMargin(0.12);
+  h_frac_cov.SetStats(0);
+  h_frac_cov.Draw("colz");
+  h_frac_cov.GetYaxis()->SetTitle("Regularised True Bin Number");
+  h_frac_cov.GetXaxis()->SetTitle("True Bin Number");
+  h_frac_cov.GetXaxis()->CenterTitle();
+  h_frac_cov.GetYaxis()->CenterTitle();
+  h_frac_cov.GetXaxis()->SetTitleFont(FontStyle);
+  h_frac_cov.GetYaxis()->SetTitleFont(FontStyle);
+  h_frac_cov.GetZaxis()->SetTitleFont(FontStyle);
+  h_frac_cov.GetXaxis()->SetLabelFont(FontStyle);
+  h_frac_cov.GetYaxis()->SetLabelFont(FontStyle);
+  h_frac_cov.GetZaxis()->SetLabelFont(FontStyle);
+
+  h_frac_cov.GetXaxis()->SetTitleSize(0.05);
+  h_frac_cov.GetYaxis()->SetTitleSize(0.05);
+  h_frac_cov.GetZaxis()->SetTitleSize(0.05);
+  h_frac_cov.GetXaxis()->SetLabelSize(0.045);
+  h_frac_cov.GetYaxis()->SetLabelSize(0.045);
+  h_frac_cov.GetZaxis()->SetLabelSize(0.045);
+  c_frac_cov->Update();
+
+  // Draw vertical and horizontal lines at the bin edges for slice boundaries
+  for (Int_t i = 1; i < n_plot_slices; i++) {
+      TLine *vline = new TLine(bins[i], 0, bins[i], n_plot_bins);
+      vline->SetLineColor(kBlack);
+      vline->Draw();
+
+      TLine *hline = new TLine(0, bins[i], n_plot_bins, bins[i]);
+      hline->SetLineColor(kBlack);
+      hline->Draw();
+  }
+
+  for (Int_t i = 1; i <= n_plot_slices; i++) {
+      // Draw white dotted lines from bins[i-1] to bins[i]
+      TLine *vline_dotted1 = new TLine(bins[i], bins[i-1], bins[i], bins[i]);
+      vline_dotted1->SetLineColor(kWhite);
+      vline_dotted1->SetLineStyle(2);
+      vline_dotted1->Draw();
+
+      TLine *hline_dotted1 = new TLine(bins[i-1], bins[i], bins[i], bins[i]);
+      hline_dotted1->SetLineColor(kWhite);
+      hline_dotted1->SetLineStyle(2);
+      hline_dotted1->Draw();
+
+      if(i<n_plot_slices)
+      {
+          TLine *vline_dotted2 = new TLine(bins[i], bins[i+1], bins[i], bins[i]);
+          vline_dotted2->SetLineColor(kWhite);
+          vline_dotted2->SetLineStyle(2);
+          vline_dotted2->Draw();
+
+          TLine *hline_dotted2 = new TLine(bins[i+1], bins[i], bins[i], bins[i]);
+          hline_dotted2->SetLineColor(kWhite);
+          hline_dotted2->SetLineStyle(2);
+          hline_dotted2->Draw();
+      }
+  }
+
+  // Add labels in the middle of the intervals
+  for (Int_t i = 0; i < n_plot_slices; i++) {
+      Double_t midPoint = (bins[i] + bins[i+1]) / 2.0;
+      TLatex *text = new TLatex(midPoint, 1.03*n_plot_bins, labels[i]);
+      text->SetTextSize(0.04);
+      text->SetTextAlign(22);
+      text->SetTextFont(FontStyle);
+      text->Draw();
+  }
+
+  h_frac_cov.Write();
+  c_frac_cov->SaveAs("plot_total_fractional_covariance_matrix.pdf");
+  c_frac_cov->SaveAs("plot_total_fractional_covariance_matrix.png");
+  std::cout << "Fractional covariance matrix plot saved to plot_total_fractional_covariance_matrix.pdf" << std::endl;
 
 }
 

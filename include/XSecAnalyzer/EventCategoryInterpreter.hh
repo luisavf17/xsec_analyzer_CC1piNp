@@ -2,7 +2,8 @@
 
 #include "TH1.h"
 
-#include "XSecAnalyzer/Selections/EventCategoriesNp1pi.hh"
+ #include "XSecAnalyzer/Selections/EventCategoriesNp1pi.hh"
+//#include "Selections/EventCategoriesNp1pi.hh"
 class EventCategoryInterpreter {
 
   public:
@@ -49,8 +50,8 @@ class EventCategoryInterpreter {
     }
 
     inline void set_ext_histogram_style( TH1* ext_hist ) const {
-      ext_hist->SetFillColor( 28 );
-      ext_hist->SetLineColor( 28 );
+      ext_hist->SetFillColor( 16 );
+      ext_hist->SetLineColor( 16 );
       ext_hist->SetLineWidth( 2 );
       ext_hist->SetFillStyle( 3005 );
       ext_hist->SetStats( false );
@@ -76,8 +77,8 @@ class EventCategoryInterpreter {
     }
 
     inline void set_stat_err_histogram_style( TH1* stat_err_hist ) const {
-      stat_err_hist->SetFillColor( kBlack );
-      stat_err_hist->SetLineColor( kBlack );
+      stat_err_hist->SetFillColor( 25 );
+      stat_err_hist->SetLineColor( 25 );
       stat_err_hist->SetLineWidth( 2 );
       stat_err_hist->SetFillStyle( 3004 );
     }

@@ -12,7 +12,7 @@ void CC1muNp1piBinScheme::DefineBlocks() {
   ntuple_ttree_name_ = "stv_tree";
 
   // Run numbers to use when plotting migration matrices
-  runs_to_use_ = { 1 };
+  runs_to_use_ = { 1, 2, 3, 4, 5 };
 
   // Prefix for the output bin and slice configuration text files
   out_config_prefix_ = "CC1muNp1pi_xsec";
@@ -46,6 +46,7 @@ void CC1muNp1piBinScheme::DefineBlocks() {
 */
 std::vector< double > pn_edges = {0., 0.12, 0.24, 0.39, 0.54, 0.69, 1.2};
 std::vector< double > alpha3D_edges = {0., 62., 98., 122., 140., 160., 180.};
+std::vector< double > phi3D_edges = {0., 15., 35., 55., 90., 180.};
   // pn block
   
   Block1D* b1t = new Block1D( "true_gki_Pn", 
@@ -67,6 +68,16 @@ std::vector< double > alpha3D_edges = {0., 62., 98., 122., 140., 160., 180.};
     "Selected", kOrdinaryRecoBin );
 
   vect_block.emplace_back( b2t, b2r );
+
+  Block1D *b3t = new Block1D( "true_gki_DeltaPhi3D",
+    "#phi_{3D}", "\\phi_{3D}", phi3D_edges,
+    "MC_Signal", kSignalTrueBin );
+
+  Block1D *b3r = new Block1D( "reco_gki_DeltaPhi3D",
+    "#phi_{3D}", "\\phi_{3D}", phi3D_edges,
+    "Selected", kOrdinaryRecoBin );
+
+  vect_block.emplace_back( b3t, b3r );
 
  /*
   Block1D *b3t = new Block1D( "true_gki_DeltaPhi3D",

@@ -4,12 +4,16 @@
 
 #include "XSecAnalyzer/Selections/CC1muNp1pi.hh"
 #include "XSecAnalyzer/Selections/EventCategoriesNp1pi.hh"
+#include "XSecAnalyzer/Selections/ParticleCategoriesNp1pi.hh"
 
+#include <algorithm>
+#include "TRandom3.h"
+#include "TH2D.h"
+#include "TFile.h"
 CC1muNp1pi::CC1muNp1pi() : SelectionBase( "CC1muNp1pi" ) {
   calc_type = kOpt1;
   this->define_category_map();
   this->define_constants();
-
 }
 
 
@@ -173,6 +177,61 @@ void CC1muNp1pi::compute_true_observables( AnalysisEvent* Event ) {
     mc_theta_mu_cpi_ = std::acos( mc_p3mu_->Dot(*mc_p3cpi_)
       / mc_p3mu_->Mag() / mc_p3cpi_->Mag() );
   }
+
+  // static TH2D* h_ratio_211 = nullptr;
+  // static TH2D* h_ratio_m211 = nullptr;
+  // static TH2D* h_ratio_111 = nullptr;
+
+  // if (!h_ratio_211) {
+
+  //     TFile f211("ratio_weights_211.root");
+  //     h_ratio_211 = (TH2D*)f211.Get("h_ratio_211")->Clone();
+  //     h_ratio_211->SetDirectory(0);
+
+  //     TFile fm211("ratio_weights_neg211.root");
+  //     h_ratio_m211 = (TH2D*)fm211.Get("h_ratio_neg211")->Clone();
+  //     h_ratio_m211->SetDirectory(0);
+
+  //     TFile f111("ratio_weights_111.root");
+  //     h_ratio_111 = (TH2D*)f111.Get("h_ratio_111")->Clone();
+  //     h_ratio_111->SetDirectory(0);
+  // }
+
+  // fsi_weight_ = 1.0;
+
+  // if (Event->is_mc_) {
+
+  //     for (size_t d = 0; d < Event->mc_nu_daughter_pdg_->size(); ++d) {
+
+  //         int pdg = Event->mc_nu_daughter_pdg_->at(d);
+
+  //         if (pdg == 211 || pdg == -211 || pdg == 111) {
+
+  //             float px = Event->mc_nu_daughter_px_->at(d);
+  //             float py = Event->mc_nu_daughter_py_->at(d);
+  //             float pz = Event->mc_nu_daughter_pz_->at(d);
+
+  //             TVector3 p(px,py,pz);
+
+  //             double mass = (std::abs(pdg)==111 ? 134.98 : 139.57);
+
+  //             double KE = sqrt(p.Mag2() + mass*mass) - mass;
+  //             double costh = p.Z() / p.Mag();
+
+  //             TH2D* h = nullptr;
+  //             if (pdg == 211) h = h_ratio_211;
+  //             if (pdg == -211) h = h_ratio_m211;
+  //             if (pdg == 111) h = h_ratio_111;
+
+  //             if (h) {
+  //                 int binx = h->GetXaxis()->FindBin(KE);
+  //                 int biny = h->GetYaxis()->FindBin(costh);
+  //                 fsi_weight_ *= h->GetBinContent(binx, biny);
+  //             }
+  //         }
+  //     }
+  // }
+
 }
 
 void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
@@ -244,6 +303,7 @@ void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
   }
 
   bool pion = pion_candidate_idx_ != BOGUS_INDEX;
+
   if ( pion ) {
     float pi_dirx = Event->track_dirx_->at( pion_candidate_idx_ );
     float pi_diry = Event->track_diry_->at( pion_candidate_idx_ );
@@ -256,6 +316,126 @@ void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
     *p3cpi_ = TVector3( pi_dirx, pi_diry, pi_dirz );
     *p3cpi_ = p3cpi_->Unit() * pion_mom;
   }
+
+//   bool pion = pion_candidate_idx_ != BOGUS_INDEX;
+// if ( pion ) {
+//     // Original pion momentum calculation (unchanged)
+//     float pi_dirx = Event->track_dirx_->at( pion_candidate_idx_ );
+//     float pi_diry = Event->track_diry_->at( pion_candidate_idx_ );
+//     float pi_dirz = Event->track_dirz_->at( pion_candidate_idx_ );
+
+//     float pion_mom = LOW_FLOAT;
+//     float trk_length = Event->track_length_->at( pion_candidate_idx_ );
+//     pion_mom =  A + B*trk_length - C*std::pow(trk_length, -1.*D);
+
+//     *p3cpi_ = TVector3( pi_dirx, pi_diry, pi_dirz );
+//     *p3cpi_ = p3cpi_->Unit() * pion_mom;
+
+//     static int total_pions_count = 0;
+//     static int total_pions_with_daughters = 0;
+//     static int total_daughters_count = 0;
+//     static int event_counter = 0;
+    
+//     // Total pions in this event using same crit as in sel.
+//     int n_pions_this_event = 0;
+//     for (int p = 0; p < Event->num_pf_particles_; ++p) {
+//         if (p >= (int)Event->pfp_generation_->size()) continue;
+//         unsigned int generation = Event->pfp_generation_->at(p);
+//         if (generation != 2u) continue;
+        
+//         if (p == muon_candidate_pid_idx_) continue;
+        
+//         float track_length = Event->track_length_->at(p);
+//         if (track_length <= 0.) continue;
+        
+//         float proton_bdt_score = Event->proton_BDT_score_->at(p);
+        
+//         if (proton_bdt_score > BOGUS - 1.) continue;
+        
+//         if (proton_bdt_score < PROTON_BDT_CUT) {
+//             n_pions_this_event++;
+//         }
+//     }
+    
+//     total_pions_count += n_pions_this_event;
+    
+//     // Check if pion has daughters
+//     int n_daughters_this_pion = 0;
+//     if (pion_candidate_idx_ < (int)Event->pfp_trk_daughters_count_->size()) {
+//         n_daughters_this_pion = Event->pfp_trk_daughters_count_->at(pion_candidate_idx_);
+        
+//         if (n_daughters_this_pion > 0) {
+//             total_pions_with_daughters++;
+//             total_daughters_count += n_daughters_this_pion;
+//         }
+//     }
+    
+//     event_counter++;
+//     if (event_counter % 100 == 0) {
+//         std::cout << "\n=== PION SUMMARY after " << event_counter << " events ===" << std::endl;
+//         std::cout << "Total pions counted: " << total_pions_count << std::endl;
+//         std::cout << "Pions with daughters: " << total_pions_with_daughters << std::endl;
+//         std::cout << "Total daughters: " << total_daughters_count << std::endl;
+//         if (total_pions_with_daughters > 0) {
+//             std::cout << "Average daughters per pion (with daughters): " 
+//                       << (float)total_daughters_count / total_pions_with_daughters << std::endl;
+//         }
+//         std::cout << "=====================================\n" << std::endl;
+//     }
+// }
+ // if pion
+
+
+
+// if ( pion ) {
+
+//     float pi_dirx = Event->track_dirx_->at( pion_candidate_idx_ );
+//     float pi_diry = Event->track_diry_->at( pion_candidate_idx_ );
+//     float pi_dirz = Event->track_dirz_->at( pion_candidate_idx_ );
+
+//     float trk_length = Event->track_length_->at( pion_candidate_idx_ );
+//     float pion_mom_reco =  A + B*trk_length - C*std::pow(trk_length, -1.*D);
+
+//     TVector3 pion_vec = TVector3(pi_dirx, pi_diry, pi_dirz).Unit() * pion_mom_reco;
+
+//     // -----------------------------------------
+//     // HARD CODE: Use truth smeared 20%
+//     // -----------------------------------------
+//     if ( Event->is_mc_ ) {
+
+//         TVector3 truth_pi;
+//         bool found_truth_pion = true;
+
+//         // Loop over MC daughters to find true pion
+//         for ( size_t d = 0; d < Event->mc_nu_daughter_pdg_->size(); ++d ) {
+//             int pdg = Event->mc_nu_daughter_pdg_->at(d);
+//             if ( std::abs(pdg) == PI_PLUS ) {
+
+//                 float px = Event->mc_nu_daughter_px_->at(d);
+//                 float py = Event->mc_nu_daughter_py_->at(d);
+//                 float pz = Event->mc_nu_daughter_pz_->at(d);
+
+//                 truth_pi = TVector3(px, py, pz);
+//                 found_truth_pion = true;
+//                 break;
+//             }
+//         }
+
+//         if (found_truth_pion) {
+
+//             double sigma_frac = 0.20;
+//             double p_true = truth_pi.Mag();
+//             TVector3 dir = truth_pi.Unit();
+
+//             double p_smeared = gRandom->Gaus(p_true, sigma_frac * p_true);
+//             if (p_smeared < 0.) p_smeared = 1e-6;
+
+//             pion_vec = dir * p_true; //p_smeared;
+//         }
+//     }
+
+//     *p3cpi_ = pion_vec;
+// }
 
     // Set the reco 3-momentum of the leading proton candidate if we found one
   bool lead_p = lead_p_candidate_idx_ != BOGUS_INDEX;
@@ -295,7 +475,7 @@ void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
       p3_p_vec_->push_back( p3_temp );
     }
 
-    // TODO: reduce code duplication by just getting the leading proton
+    // TODO: reduce code duplication by just getting the lgoleading proton
     // 3-momentum from this sorted vector
     // Sort the reco proton 3-momenta in order from highest to lowest magnitude
     std::sort( p3_p_vec_->begin(), p3_p_vec_->end(), [](const TVector3& a,
@@ -640,7 +820,12 @@ bool CC1muNp1pi::selection( AnalysisEvent* Event ) {
     bool sel_CCNp1pi_ = false;
     return sel_CCNp1pi_;
   }  
-
+  sel_golden_pion_ = false;
+  if (pion_candidate_idx_ != BOGUS_INDEX)
+  {
+      const float pionBDT = Event->goldenPion_BDT_score_->at(pion_candidate_idx_);
+      sel_golden_pion_ = (pionBDT > GOLDEN_PION_BDT_CUT);
+  }
   // AT THIS POINT WE HAVE A MUON AND A PION CANDIDATE.
   // Here we check if pfp emerge in vertex proximity,
   // and if all particles are contained 
@@ -807,8 +992,8 @@ bool CC1muNp1pi::selection( AnalysisEvent* Event ) {
   // candidate)
   bool sel_CCNp1pi_ = sel_nu_mu_cc_ && sel_no_reco_showers_
     && sel_muon_passed_mom_cuts_ && sel_muon_contained_ && sel_muon_quality_ok_
-    && sel_has_p_candidate_ && sel_min_3_tracks_ && sel_2_non_proton_ && sel_has_pion_candidate_
-    && sel_all_pfp_contained_&& sel_all_pfp_in_vtx_proximity_ && sel_protons_contained_ && sel_lead_p_passed_mom_cuts_ && sel_pion_passed_mom_cuts_;//&& (!sel_tracks_flipped_);
+    && sel_has_p_candidate_ && sel_min_3_tracks_ && sel_2_non_proton_ && sel_has_pion_candidate_ //&& sel_golden_pion_
+    && sel_all_pfp_contained_&& sel_all_pfp_in_vtx_proximity_ && sel_protons_contained_ && sel_lead_p_passed_mom_cuts_ && sel_pion_passed_mom_cuts_ ;//&& (!sel_tracks_flipped_);
 
   return sel_CCNp1pi_;
 }
@@ -873,6 +1058,38 @@ int CC1muNp1pi::categorize_event(AnalysisEvent* Event) {
   return kNuMuCCOther;
 }
 
+
+int CC1muNp1pi::categorize_particle( AnalysisEvent* Event, int pfp_idx ) {
+
+  if ( pfp_idx == BOGUS_INDEX ) return kParticleUnknown;
+
+  if ( !Event->is_mc_ ) return kParticleUnknown;
+
+  if ( !Event->pfp_true_pdg_ ) return kParticleUnknown;
+
+  if ( pfp_idx < 0 ||
+       pfp_idx >= static_cast<int>( Event->pfp_true_pdg_->size() ) ) {
+    return kParticleUnknown;
+  }
+
+  int true_pdg = Event->pfp_true_pdg_->at( pfp_idx );
+
+  if ( std::abs( true_pdg ) == MUON ) {
+    return kParticleMuon;
+  }
+
+  if ( true_pdg == PROTON ) {
+    return kParticleProton;
+  }
+
+  if ( std::abs( true_pdg ) == PI_PLUS ) {
+    return kParticlePion;
+  }
+
+  return kParticleOther;
+}
+
+
 void CC1muNp1pi::define_output_branches() {
 
   set_branch( &sig_isNuMu_, "mc_is_numu" );
@@ -906,7 +1123,13 @@ void CC1muNp1pi::define_output_branches() {
   set_branch( &sel_lead_p_passed_mom_cuts_, "lead_p_passed_mom_cuts" );
   set_branch( &sel_cosmic_ip_cut_passed_, "cosmic_ip_cut_passed" );
   set_branch( &sel_pion_passed_mom_cuts_, "pion_passed_mom_cuts" );
+  set_branch( &sel_golden_pion_, "golden_pion" );
   set_branch( &sel_tracks_flipped_, "tracks_flipped" );
+
+  set_branch( &proton_bdt_score_, "proton_bdt_score" );
+  set_branch( &particle_category_, "ParticleCategory" );
+  set_branch( &proton_bdt_plot_presel_, "proton_bdt_plot_presel" );
+  set_branch( &proton_bdt_plot_candidate_idx_, "proton_bdt_plot_candidate_idx" );
 
   set_branch( &n_reco_tracks_, "n_reco_tracks" );
   set_branch( &n_non_proton_like_, "n_non_proton_like" );
@@ -1027,6 +1250,8 @@ void CC1muNp1pi::define_output_branches() {
   set_branch( &mc_gki_Total_DeltaPhi3D_pion_, "true_gki_Total_DeltaPhi3D_pion" );
   set_branch( &mc_gki_Total_DeltaPhi3D_proton_, "true_gki_Total_DeltaPhi3D_proton" );
   set_branch( &mc_gki_Total_DeltaPhi3D_muon_, "true_gki_Total_DeltaPhi3D_muon" );
+
+  //set_branch(&fsi_weight_, "fsi_weight");
 }
 
 void CC1muNp1pi::reset() {
@@ -1052,6 +1277,7 @@ void CC1muNp1pi::reset() {
   sel_has_pion_candidate_ = false;
   sel_muon_contained_ = false;
   sel_pion_contained_ = false;
+  sel_golden_pion_ = false;
   sel_muon_passed_mom_cuts_ = false;
   sel_muon_quality_ok_ = false;
   sel_all_pfp_contained_ = false;
@@ -1184,6 +1410,11 @@ void CC1muNp1pi::reset() {
   gki_Total_DeltaPhi3D_pion_ = BOGUS;
   gki_Total_DeltaPhi3D_proton_ = BOGUS;
   gki_Total_DeltaPhi3D_muon_ = BOGUS;
+
+  proton_bdt_score_ = BOGUS;
+  particle_category_ = kParticleUnknown;
+  proton_bdt_plot_presel_ = false;
+  proton_bdt_plot_candidate_idx_ = BOGUS_INDEX;
 
 }
 

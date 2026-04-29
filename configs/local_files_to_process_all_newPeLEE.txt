@@ -1,0 +1,78 @@
+# NU OVERLAY
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run1.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run2.roottest.root
+/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run3.roottest.root
+/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run4.roottest.root
+/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run5.roottest.root
+
+#DIRT
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/dirt_overlay_run1.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/dirt_overlay_run2.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/dirt_overlay_run3.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/dirt_overlay_run4.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/dirt_overlay_run5.roottest.root
+
+# EXT
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/ext_run1.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/ext_run2.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/ext_run3.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/ext_run4.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/ext_run5.roottest.root
+
+# BEAM ON
+#/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/BDT_run1_beamon_opentrigger_bnb_pandora_3v_a_reprocessing_v08_00_00_83_ntuple_ntuple_ana.root
+#/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/BDT_run1_beamon_opentrigger_bnb_pandora_3v_b_reprocessing_v08_00_00_83_beam_good_ntuple_ntuple_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/beam_on_run1.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/beam_on_run2.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/beam_on_run3.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/beam_on_run4.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/beam_on_run5.roottest.root
+
+
+# DETVAR
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_CVextra.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_CV_virtualParentsFix.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_LYAttenuation.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_LYAtteNuation.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_LYDown.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_LYRayleigh_virtualParentsFix.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_Recomb2.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_SCE.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_WireModThetaXZ.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_WireModThetaYZ.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_WireModX_virtualParentsFix.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_WireModYZ.roottest.root 
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/detvar_run3_peleeTuple_uboone_v08_00_00_73_WireModdEdx_virtualParentsFix.roottest.root
+
+# DETVAR RUN4
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_5_bnb_nu_overlay_detvar_LYDown_reco2_pandora_unified_run4_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_5_bnb_nu_overlay_detvar_LYRayleigh_reco2_pandora_unified_run4_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_Run_4_BNB_Nu_Detvar_LYAttenuation_Pandora_Reco2_run4_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_Pandora_WireMod_Theta_XZ_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_Pandora_WireMod_Theta_YZ_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_Recomb2_pandora_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_SCE_pandora_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_wiremod_x_pandora_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nu_detvar_wiremod_yz_pandora_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run4_detvar/BDT_run4_bnb_nue_detvar_SCE_pandora_reco2_ana.root
+
+# DETVAR RUN5
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run4_5_bnb_nu_overlay_detvar_LYDown_reco2_pandora_unified_run5_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run4_5_bnb_nu_overlay_detvar_LYRayleigh_reco2_pandora_unified_run5_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_Run_5_BNB_Nu_Detvar_LYAttenuation_Pandora_Reco2_run5_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_Pandora_WireMod_Theta_XZ_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_Pandora_WireMod_Theta_YZ_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_Recomb2_pandora_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_SCE_pandora_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_wire_mod_x_Pandora_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nu_detvar_wire_mod_yz_Pandora_reco2_reco2_ana.root
+#/run/media/luisavf17/lvf17/uBooNE/BDTadded_DETVAR/run5_detvar/BDT_run5_bnb_nue_detvar_WireModThetaYZ_pandora_reco2_run5_ana.root
+
+
+
+# NUWRO
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nuwro_run1.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nuwro_run2.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nuwro_run3.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nuwro_run4.roottest.root
+#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nuwro_run5.roottest.root

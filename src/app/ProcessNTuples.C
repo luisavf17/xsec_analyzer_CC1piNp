@@ -5,6 +5,8 @@
 // Steven Gardiner <gardiner@fnal.gov>
 // Daniel Barrow <daniel.barrow@physics.ox.ac.uk>
 
+// Updated 19/02/2026: Modified for adding weighting for FSI effects (Temporary solution) - M.L. Velazquez Fernandez
+
 // Standard library includes
 #include <cmath>
 #include <iostream>
@@ -21,16 +23,21 @@
 #include "TParameter.h"
 #include "TTree.h"
 #include "TVector3.h"
+#include "TH2D.h"
 
 // XSecAnalyzer includes
 #include "XSecAnalyzer/AnalysisEvent.hh"
 #include "XSecAnalyzer/Branches.hh"
 #include "XSecAnalyzer/Constants.hh"
 #include "XSecAnalyzer/Functions.hh"
-
 #include "XSecAnalyzer/Selections/SelectionBase.hh"
 #include "XSecAnalyzer/Selections/SelectionFactory.hh"
 
+bool ends_with(const std::string& str, const std::string& suffix) {
+        if (str.length() < suffix.length()) return false;
+        return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
+      }
+      
 void analyze( const std::vector< std::string >& in_file_names,
   const std::vector< std::string >& selection_names,
   const std::string& output_filename )
@@ -46,8 +53,10 @@ void analyze( const std::vector< std::string >& in_file_names,
     std::cout << "\t\t- " << sel_name << '\n';
   }
 
-  // Get the TTrees containing the event ntuples and subrun POT information
-  // Use TChain objects for simplicity in manipulating multiple files
+  // Toggle FSI reweighting
+  bool use_fsi_weighter = true;
+  //bool force_reco_pion_truth = true;   // TOY STUDY
+
   TChain events_ch( "NeutrinoSelectionFilter" );
   TChain subruns_ch( "SubRun" );
 
@@ -76,10 +85,43 @@ void analyze( const std::vector< std::string >& in_file_names,
     }
   }
 
-  TParameter<float>* summed_pot_param = new TParameter<float>( "summed_pot",
-    summed_pot );
-
+  TParameter<float>* summed_pot_param =
+    new TParameter<float>( "summed_pot", summed_pot );
   summed_pot_param->Write();
+
+  // Load FSI ratio histograms
+  TH2D* h_ratio_211  = nullptr;
+  TH2D* h_ratio_m211 = nullptr;
+  TH2D* h_ratio_111  = nullptr;
+
+  if (use_fsi_weighter) {
+
+    TFile f211("ratio_weights_211.root","READ");
+    TFile fm211("ratio_weights_neg211.root","READ");
+    TFile f111("ratio_weights_111.root","READ");
+
+    if (f211.IsZombie() || fm211.IsZombie() || f111.IsZombie()) {
+      std::cout << "Error opening ratio files\n";
+      exit(1);
+    }
+
+    h_ratio_211  = (TH2D*)f211.Get("h_ratio_211");
+    h_ratio_m211 = (TH2D*)fm211.Get("h_ratio_neg211");
+    h_ratio_111  = (TH2D*)f111.Get("h_ratio_111");
+
+    if (!h_ratio_211 || !h_ratio_m211 || !h_ratio_111) {
+      std::cout << "Error retrieving ratio histograms\n";
+      exit(1);
+    }
+
+    h_ratio_211->SetDirectory(0);
+    h_ratio_m211->SetDirectory(0);
+    h_ratio_111->SetDirectory(0);
+
+    f211.Close();
+    fm211.Close();
+    f111.Close();
+  }
 
   std::vector< std::unique_ptr<SelectionBase> > selections;
 
@@ -133,8 +175,172 @@ void analyze( const std::vector< std::string >& in_file_names,
     // TChain::SetBranchAddress() above
     events_ch.GetEntry( events_entry );
 
-    // Set the output TTree branch addresses, creating the branches if needed
-    // (during the first event loop iteration)
+    // ------------------------------------------------------------
+    // APPLY FSI REWEIGHTING BEFORE OUTPUT BRANCHES ARE SET
+    // ------------------------------------------------------------
+    // Apply same mask as used for obtaining the weights.
+    struct TopologyMask {
+      bool require_cc;
+      int min_protons;
+      int n_pi_plus;
+      int n_pi_minus;
+      int n_pi0;
+      int pion_pdg;     
+      TH2D* hist;        
+      std::string name;  
+    };
+    std::vector<TopologyMask> fsi_masks;
+
+    if (use_fsi_weighter) {
+
+      // CC1pi0 + >=1p
+      fsi_masks.push_back({
+        true,     
+        1,        
+        0,        
+        0,       
+        1,        
+        111,     
+        h_ratio_111,
+        "CC1pi0_1p"
+      });
+
+      // CC1pi+ + >=1p
+      fsi_masks.push_back({
+        true,
+        1,
+        1,
+        0,
+        0,
+        211,
+        h_ratio_211,
+        "CC1piPlus_1p"
+      });
+
+      // CC1pi- + >=1p
+      fsi_masks.push_back({
+        true,
+        1,
+        0,
+        1,
+        0,
+        -211,
+        h_ratio_m211,
+        "CC1piMinus_1p"
+      });
+    }
+
+    if (use_fsi_weighter && cur_event.mc_nu_daughter_pdg_) {
+
+      int n_proton = 0;
+      int n_pi_plus = 0;
+      int n_pi_minus = 0;
+      int n_pi0 = 0;
+
+      int pion_index_for_mask = -1;
+
+      bool is_cc = (cur_event.mc_nu_ccnc_ == 0);
+
+      size_t n_daughters = cur_event.mc_nu_daughter_pdg_->size();
+
+      // Count final-state particles
+      for (size_t d = 0; d < n_daughters; ++d) {
+
+        int pdg = cur_event.mc_nu_daughter_pdg_->at(d);
+
+        if (pdg == 2212) ++n_proton;
+        if (pdg == 211)  ++n_pi_plus;
+        if (pdg == -211) ++n_pi_minus;
+        if (pdg == 111)  ++n_pi0;
+      }
+
+      double fsi_weight = 1.0;
+      int n_masks_matched = 0;
+
+      for (auto& mask : fsi_masks) {
+
+        bool match = true;
+
+        if (mask.require_cc && !is_cc) match = false;
+        if (n_proton < mask.min_protons) match = false;
+        if (n_pi_plus  != mask.n_pi_plus)  match = false;
+        if (n_pi_minus != mask.n_pi_minus) match = false;
+        if (n_pi0      != mask.n_pi0)      match = false;
+
+        if (!match) continue;
+
+        ++n_masks_matched;
+
+        // Find pion for kinematics
+        for (size_t d = 0; d < n_daughters; ++d) {
+          if (cur_event.mc_nu_daughter_pdg_->at(d) == mask.pion_pdg) {
+            pion_index_for_mask = d;
+            break;
+          }
+        }
+
+        if (pion_index_for_mask < 0) continue;
+
+        double px = cur_event.mc_nu_daughter_px_->at(pion_index_for_mask);
+        double py = cur_event.mc_nu_daughter_py_->at(pion_index_for_mask);
+        double pz = cur_event.mc_nu_daughter_pz_->at(pion_index_for_mask);
+        double p = std::sqrt(px*px + py*py + pz*pz);
+        if (p <= 0) continue;
+
+        const double m_pi_ch = 0.13957;
+        const double m_pi0   = 0.13498;
+        double mass = (mask.pion_pdg == 111) ? m_pi0 : m_pi_ch;
+        double E = std::sqrt(p*p + mass*mass);
+        double KE = (E - mass) * 1000.0;
+        double cos_theta = pz / p;
+
+        TH2D* h = mask.hist;
+        if (!h) continue;
+
+        int binx = h->GetXaxis()->FindBin(KE);
+        binx = std::max(1, std::min(binx, h->GetXaxis()->GetNbins()));
+        int biny = h->GetYaxis()->FindBin(cos_theta);
+        biny = std::max(1, std::min(biny, h->GetYaxis()->GetNbins()));
+
+        double w = h->GetBinContent(binx, biny);
+
+        if (std::isfinite(w) && w > 0.0)
+          fsi_weight = w;
+      }
+
+      // Apply weight
+      // if (fsi_weight != 1.0 && cur_event.mc_weights_map_) {
+      //   // std::cout << "Applying FSI weight " << fsi_weight
+      //             // << " to event " << events_entry << "\n";
+      //   auto it = cur_event.mc_weights_map_->find("TunedCentralValue_UBGenie");
+      //   //print if found
+      //   std::cout << "DEBUG: Looking for 'TunedCentralValue_UBGenie' in mc_weights_map_\n";
+      //   std::cout << "DEBUG: mc_weights_map_ keys:\n";
+      //   std::vector<std::string> keys;
+      //   for (const auto& kv : *cur_event.mc_weights_map_) {
+      //     keys.push_back(kv.first);
+      //   }
+      //   for (const auto& key : keys) {
+      //     std::cout << "  - " << key << '\n';
+      //   }
+
+      //   if (it != cur_event.mc_weights_map_->end()) {
+      //     it->second.at(0) *= fsi_weight;
+      //   }
+      // }
+      
+      if (fsi_weight != 1.0 && cur_event.mc_weights_map_) {
+        for (auto& [wgt_name, wgt_vec] : *cur_event.mc_weights_map_) {
+          if (ends_with(wgt_name, "UBGenie")) {
+            for (double& w : wgt_vec) {
+              w *= fsi_weight;
+            }
+          }
+        }
+      }
+    }
+    // ------------------------------------------------------------
+
     bool create_them = false;
     if ( !created_output_branches ) {
       create_them = true;

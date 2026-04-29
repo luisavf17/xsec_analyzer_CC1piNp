@@ -46,6 +46,7 @@ private:
   bool sel_muon_contained_;
   bool sel_pion_contained_;
   bool sel_protons_contained_;
+  bool sel_golden_pion_;
 
   bool sel_no_reco_showers_;
   bool sel_min_3_tracks_;
@@ -191,4 +192,10 @@ private:
   double mc_gki_Total_DeltaPhi3D_pion_;
   double mc_gki_Total_DeltaPhi3D_proton_;
   double mc_gki_Total_DeltaPhi3D_muon_;
+
+    ///////////////////////////////////////////
+  /// Apply weight from Mohamed's studies ///
+  ///////////////////////////////////////////
+  double fsi_weight_;
+  
 };

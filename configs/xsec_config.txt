@@ -1,6 +1,6 @@
-UnivFile /exp/uboone/data/users/kwresilo/CCNp1pi/universes2/univmake_real_data.root
-SystFile ./configs/systcalc.conf
-FPFile ./configs/TO_USE_FOR_RESULT_file_properties.txt
+UnivFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/Universes/Universe.root # /home/luisavf17/uBooNE/xsec_analyzer/univmake_real_data.root
+SystFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/configs/systcalc.conf
+FPFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/configs/local_TO_USE_FOR_RESULT_file_properties.txt
 #Unfold DAgostini fm 0.025
 Unfold WienerSVD 1 first-deriv
 Prediction uBTune "MicroBooNE Tune" univ CV

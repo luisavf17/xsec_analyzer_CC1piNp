@@ -8,6 +8,7 @@
 
 // ROOT includes
 #include "TDecompQRH.h"
+#include "TDecompSVD.h"
 #include "TCanvas.h"
 #include "TH1D.h"
 #include "TH2D.h"
@@ -54,6 +55,8 @@ std::unique_ptr< TMatrixD > invert_matrix( const TMatrixD& mat,
   //inverse_matrix->Invert();
   TDecompQRH qr_decomp( *inverse_matrix, DBL_EPSILON );
   qr_decomp.Invert( *inverse_matrix );
+// TDecompSVD svd( *inverse_matrix );
+// svd.Invert( *inverse_matrix );
 
   // Undo the scaling by re-applying it to the inverse matrix
   inverse_matrix->operator*=( scaling_factor );
@@ -72,6 +75,16 @@ std::unique_ptr< TMatrixD > invert_matrix( const TMatrixD& mat,
       }
     }
   }
+  // For SVD pseudo-inverse, A*A⁺ is a projector, not identity
+// Only check that we did not generate NaNs or infinities
+// for ( int a = 0; a < num_bins; ++a ) {
+//   for ( int b = 0; b < num_bins; ++b ) {
+//     double v = (*inverse_matrix)(a,b);
+//     if ( !std::isfinite(v) ) {
+//       throw std::runtime_error("Matrix inversion produced non-finite values");
+//     }
+//   }
+// }
 
   return inverse_matrix;
 }

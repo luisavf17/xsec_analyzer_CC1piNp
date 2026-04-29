@@ -67,6 +67,7 @@ public:
 
   // Interaction mode (QE, MEC, etc.)
   int mc_nu_interaction_type_ = BOGUS_INT;
+  int mc_particle_type_ = BOGUS_INT;
 
   //================================================================================================================
   /* PARTICLE LEVEL RECO VARIABLES */
@@ -74,6 +75,7 @@ public:
   // BDT scores
   MyPointer< std::vector<float> > proton_BDT_score_;
   MyPointer< std::vector<float> > muon_BDT_score_;
+  MyPointer< std::vector<float> > goldenPion_BDT_score_;
 
   // pion/golden pion handles
   MyPointer< std::vector<int> > pfp_n_descendents_;
@@ -217,6 +219,9 @@ public:
   MyPointer< std::vector<float> > track_theta_;
   MyPointer< std::vector<float> > track_phi_;
 
+// Total reconstructed calorimetric energy per track
+float trk_energy_tot_ = BOGUS;
+
   // Proton *kinetic* energy using range-based momentum reconstruction
   MyPointer< std::vector<float> > track_kinetic_energy_p_;
 
@@ -274,6 +279,7 @@ public:
   // GENIE weights
   float spline_weight_ = DEFAULT_WEIGHT;
   float tuned_cv_weight_ = DEFAULT_WEIGHT;
+  //float fsi_weight_ = DEFAULT_WEIGHT;
 
   // Signal definition requirements
   bool is_mc_ = false;

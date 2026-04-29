@@ -18,8 +18,8 @@
 //Useful DEBUG options which can be turned on/off
 std::string PlotExtension = ".pdf";
 std::string TextExtension = ".txt";
-bool DumpToText = false;
-bool DumpToPlot = false;
+bool DumpToText = true;
+bool DumpToPlot = true;
 
 void Unfolder(std::string XSEC_Config, std::string SLICE_Config, std::string OutputDirectory, std::string OutputFileName) {
 

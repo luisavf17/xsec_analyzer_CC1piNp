@@ -30,7 +30,7 @@ class BinSchemeBase {
     std::string ntuple_ttree_name_ = "stv_tree";
 
     /// The run numbers to use when plotting migration matrices
-    std::set< int > runs_to_use_ = { 1 };
+    std::set< int > runs_to_use_ = { 1, 2, 3, 4, 5 };
 
     /// Prefix for the output bin/slice configuration text files
     std::string out_config_prefix_;

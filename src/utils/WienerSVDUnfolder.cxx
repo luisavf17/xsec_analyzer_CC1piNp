@@ -1,6 +1,8 @@
 // XSecAnalyzer includes
 #include "XSecAnalyzer/MatrixUtils.hh"
 #include "XSecAnalyzer/WienerSVDUnfolder.hh"
+#include <iostream>
+#include <TMath.h>
 
 UnfoldedMeasurement WienerSVDUnfolder::unfold( const TMatrixD& data_signal,
   const TMatrixD& data_covmat, const TMatrixD& smearcept,
@@ -59,6 +61,17 @@ UnfoldedMeasurement WienerSVDUnfolder::unfold( const TMatrixD& data_signal,
   TMatrixD C( num_true_signal_bins, num_true_signal_bins );
   this->set_reg_matrix( C );
 
+  // Normalize C according to the Norm_type parameter 
+  double n = 0.0;
+  TMatrixD normsig(num_true_signal_bins, num_true_signal_bins);
+  for(int i=0; i<num_true_signal_bins; i++){
+        for(int j=0; j<num_true_signal_bins; j++){
+            normsig(i, j) = 0;
+            if(i==j) normsig(i, j) = 1./TMath::Power(prior_true_signal(i, 0), n);
+        }
+  }
+  C = C*normsig;
+  
   // Invert the regularization matrix to obtain C^(-1)
   auto Cinv = invert_matrix( C );
 

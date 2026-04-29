@@ -66,8 +66,9 @@ constexpr float MUON_PID_CUT = 0.2;
 constexpr float TRACK_SCORE_CUT = 0.5;
 constexpr float PROTON_BDT_CUT = 0.01;
 constexpr float MUON_BDT_CUT = 0.0;
+constexpr float GOLDEN_PION_BDT_CUT = -0.03;
 constexpr float TOPO_SCORE_CUT_2 = 0.67; // TODO: check this value/remove as unusued
-constexpr float PFP_DISTANCE_CUT = 9.5;  //cm 
+constexpr float PFP_DISTANCE_CUT = 4;  //cm 
 
 // Boundaries of the proton containment volume (used in reco only) in cm
 constexpr double PCV_X_MIN =   10.;

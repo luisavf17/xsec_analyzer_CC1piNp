@@ -210,8 +210,10 @@ class FilePropertiesManager {
       // use the default one
       std::string in_file_name( input_table_file_name );
       if ( in_file_name.empty() ) {
-        in_file_name = analysis_path_ + "/configs/file_properties.txt";
-	std::cout << "Provided FPM_CONFIG name is empty. Using default: "
+        in_file_name = analysis_path_ + "/configs/file_properties_plot.txt";
+        // in_file_name = analysis_path_ + "/configs/local_TO_USE_FOR_RESULT_file_properties.txt";
+        // in_file_name = analysis_path_ + "/configs/local_TO_USE_FOR_RESULT_file_properties_EFFPUR.txt";
+	      std::cout << "Provided FPM_Config name is empty. Using default: "
           << in_file_name << '\n';
       }
 

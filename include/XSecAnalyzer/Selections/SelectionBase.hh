@@ -9,11 +9,13 @@
 #include "TVector3.h"
 
 // XSecAnalyzer includes
-#include "XSecAnalyzer/AnalysisEvent.hh"
-#include "XSecAnalyzer/FiducialVolume.hh"
-#include "XSecAnalyzer/Constants.hh"
-#include "XSecAnalyzer/STVTools.hh"
-#include "XSecAnalyzer/GKITools.hh"
+#include "../AnalysisEvent.hh"
+#include "../FiducialVolume.hh"
+#include "../Constants.hh"
+#include "../STVTools.hh"
+// #include "XSecAnalyzer/STVTools.hh"
+#include "../GKITools.hh"
+// #include "XSecAnalyzer/GKITools.hh"
 
 class SelectionBase {
 
