@@ -30,11 +30,11 @@
 #/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-intrinsic_nue_overlay_run3.roottest.root 3 nueMC
 #
 # numu MC samples
-/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-reweighted-GENIE-nu_overlay_run1.roottest.root 1 numuMC
-/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-reweighted-GENIE-nu_overlay_run2.roottest.root 2 numuMC
-/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-reweighted-GENIE-nu_overlay_run3.roottest.root 3 numuMC
-/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-reweighted-GENIE-nu_overlay_run4.roottest.root 4 numuMC
-/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-reweighted-GENIE-nu_overlay_run5.roottest.root 5 numuMC
+/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-nu_overlay_run1.roottest.root 1 numuMC
+/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-nu_overlay_run2.roottest.root 2 numuMC
+/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-nu_overlay_run3.roottest.root 3 numuMC
+/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-nu_overlay_run4.roottest.root 4 numuMC
+/home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/xsec-ana-nu_overlay_run5.roottest.root 5 numuMC
 #
 # detVar MC samples
 /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/OutputProcessedNTuples/merged_detvar/CVExtra_reference.root 3 detVarCVExtra

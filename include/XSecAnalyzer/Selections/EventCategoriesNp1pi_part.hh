@@ -5,16 +5,16 @@
 #include <string>
 
 // Enum used to label particles of interest, to make particle dependent plots (aiming to make BDT plotting)
-enum ParticleCategoryNp1pi {
+enum EventCategoryNp1pi_part {
 
   // Unable to categorize (e.g., because the event is real data and thus
   // has no MC truth information)
-  kParticleUnknown = -1,
-  kMuon = 0, //
-  kPion = 1, //
-  kProton = 2, //
-  kOther = 3 //
+  kParticleUnknown = 0,
+  kMuon = 1, //
+  kPion = 2, //
+  kProton = 3, //
+  kOther = 4 //
 
 };
 
-extern std::map< int, std::pair< std::string, int > > CC1muNp1pi_PARTICLE_MAP;
+extern std::map< int, std::pair< std::string, int > > CC1muNp1pi_MAPart;

@@ -35,7 +35,7 @@ struct GeneratorInfo {
 
 const int FontStyle = 132;
 
-bool isClosure = false;
+bool isClosure = true;
 // Helper function that dumps a lot of the results to simple text files.
 // The events_to_xsec_factor is a constant that converts expected true event
 // counts to a total cross section (10^{-39} cm^2 / Ar) via multiplication.
@@ -211,7 +211,7 @@ void multiply_1d_hist_by_matrix(TMatrixD *mat, TH1 *hist)
 void UnfolderNuMI(std::string XSEC_Config, std::string SLICE_Config, std::string OutputDirectory, std::string OutputFileName) {
 
   // set to using fake data
-  bool using_fake_data = true;
+  bool using_fake_data = false;
   bool total_only = false;
   
   std::cout << "\nRunning Unfolder.C with options:" << std::endl;

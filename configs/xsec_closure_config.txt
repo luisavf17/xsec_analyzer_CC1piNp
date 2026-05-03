@@ -1,6 +1,7 @@
-UnivFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/Universes/Universe_closure.root 
+#UnivFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/Universes/Universe_closureTKI.root 
+UnivFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/Universe_closureGKINew.root
 SystFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/configs/systcalc_closure.conf
-FPFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/configs/file_properties_closure2.txt
+FPFile /home/luisavf17/uBooNE/xsec_analyzer_cc1piNp/configs/file_properties_closure.txt
 #Unfold DAgostini fm 0.025
 Unfold WienerSVD 1 first-deriv
 Prediction uBTune "MicroBooNE Tune" univ CV

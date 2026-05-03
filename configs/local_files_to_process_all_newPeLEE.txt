@@ -1,6 +1,6 @@
 # NU OVERLAY
-#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run1.roottest.root
-#/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run2.roottest.root
+/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run1.roottest.root
+/run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run2.roottest.root
 /run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run3.roottest.root
 /run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run4.roottest.root
 /run/media/luisavf17/lvf17/uBooNE/kWresiloDataGKIv4/Data/newPeLEE/nu_overlay_run5.roottest.root

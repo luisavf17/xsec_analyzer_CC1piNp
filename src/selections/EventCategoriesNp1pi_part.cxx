@@ -1,8 +1,8 @@
 #include "TH1.h"
 #include "TColor.h"
-#include "XSecAnalyzer/Selections/ParticleCategoriesNp1pi.hh"
+#include "XSecAnalyzer/Selections/EventCategoriesNp1pi_part.hh"
 
-std::map<int, std::pair<std::string, int>> CC1muNp1pi_PARTICLE_MAP = {
+std::map<int, std::pair<std::string, int>> CC1muNp1pi_MAPart = {
 
   { kMuon,        { "Muon", TColor::GetColor("#8B0000") } }, // darkred
   { kPion,     { "Pion", TColor::GetColor("#DAA520") } }, // goldenrod

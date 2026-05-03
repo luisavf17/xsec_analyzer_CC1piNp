@@ -30,7 +30,7 @@ CC1muNp1pi
 0 4 "MC_Signal && true_p3_lead_p.Mag() >= 0.57 && true_p3_lead_p.Mag() < 0.63"
 0 4 "MC_Signal && true_p3_lead_p.Mag() >= 0.63 && true_p3_lead_p.Mag() < 0.7"
 0 4 "MC_Signal && true_p3_lead_p.Mag() >= 0.7 && true_p3_lead_p.Mag() < 0.9"
-0 4 "MC_Signal && true_p3_lead_p.CosTheta() >= -1.0 && true_p3_lead_p.CosTheta() < -0.34"
+0 5 "MC_Signal && true_p3_lead_p.CosTheta() >= -1.0 && true_p3_lead_p.CosTheta() < -0.34"
 0 5 "MC_Signal && true_p3_lead_p.CosTheta() >= -0.34 && true_p3_lead_p.CosTheta() < 0.07"
 0 5 "MC_Signal && true_p3_lead_p.CosTheta() >= 0.07 && true_p3_lead_p.CosTheta() < 0.39"
 0 5 "MC_Signal && true_p3_lead_p.CosTheta() >= 0.39 && true_p3_lead_p.CosTheta() < 0.65"

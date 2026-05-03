@@ -365,8 +365,8 @@ void analyze( const std::vector< std::string >& in_file_names,
   for ( auto& sel : selections ) {
     sel->final_tasks();
   }
-
   std::cout << "DEBUG 0" << std::endl;
+  out_file->cd();
   out_tree->Write();
   std::cout << "DEBUG 1" << std::endl;
   out_file->Close();

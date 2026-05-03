@@ -2,26 +2,26 @@
 #include "XSecAnalyzer/TreeUtils.hh" 
 #include "XSecAnalyzer/Functions.hh"
 
-#include "XSecAnalyzer/Selections/CC1muNp1pi.hh"
-#include "XSecAnalyzer/Selections/EventCategoriesNp1pi.hh"
+#include "XSecAnalyzer/Selections/CC1muNp1pi_particle.hh"
+#include "XSecAnalyzer/Selections/EventCategoriesNp1pi_part.hh"
 
 #include <algorithm>
 #include "TRandom3.h"
 #include "TH2D.h"
 #include "TFile.h"
-CC1muNp1pi::CC1muNp1pi() : SelectionBase( "CC1muNp1pi" ) {
+CC1muNp1pi_particle::CC1muNp1pi_particle() : SelectionBase( "CC1muNp1pi_particle" ) {
   calc_type = kOpt1;
   this->define_category_map();
   this->define_constants();
 }
 
 
-void CC1muNp1pi::define_constants() {
+void CC1muNp1pi_particle::define_constants() {
   this->define_true_FV( 21.5, 234.85, -95.0, 95.0, 21.5, 966.8 );
   this->define_reco_FV( 21.5, 234.85, -95.0, 95.0, 21.5, 966.8 );
 }
 
-void CC1muNp1pi::compute_true_observables( AnalysisEvent* Event ) {
+void CC1muNp1pi_particle::compute_true_observables( AnalysisEvent* Event ) {
   size_t num_mc_daughters = Event->mc_nu_daughter_pdg_->size();
 
   // Set the true 3-momentum of the final-state muon if there is one
@@ -233,7 +233,7 @@ void CC1muNp1pi::compute_true_observables( AnalysisEvent* Event ) {
 
 }
 
-void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
+void CC1muNp1pi_particle::compute_reco_observables( AnalysisEvent* Event ) {
 
   // In cases where we failed to find a muon candidate, check whether there are
   // at least two generation == 2 PFParticles. If there are, then compute the
@@ -541,7 +541,7 @@ void CC1muNp1pi::compute_reco_observables( AnalysisEvent* Event ) {
 
 }
 
-bool CC1muNp1pi::define_signal( AnalysisEvent* Event ) {
+bool CC1muNp1pi_particle::define_signal( AnalysisEvent* Event ) {
 
   sig_inFV_ = point_inside_FV( this->true_FV(), Event->mc_nu_vx_,
     Event->mc_nu_vy_, Event->mc_nu_vz_ );
@@ -610,7 +610,7 @@ bool CC1muNp1pi::define_signal( AnalysisEvent* Event ) {
   return ReturnVal;
 }
 
-bool CC1muNp1pi::selection( AnalysisEvent* Event ) {
+bool CC1muNp1pi_particle::selection( AnalysisEvent* Event ) {
 
   FiducialVolume PCV;
   PCV.X_Min = 10.;
@@ -997,69 +997,27 @@ bool CC1muNp1pi::selection( AnalysisEvent* Event ) {
   return sel_CCNp1pi_;
 }
 
-int CC1muNp1pi::categorize_event(AnalysisEvent* Event) {
-  // Real data has a bogus true neutrino PDG code that is not one of the
-  // allowed values (±12, ±14, ±16)
-  int abs_mc_nu_pdg = std::abs( Event->mc_nu_pdg_ );
-  Event->is_mc_ = ( abs_mc_nu_pdg == ELECTRON_NEUTRINO
-    || abs_mc_nu_pdg == MUON_NEUTRINO || abs_mc_nu_pdg == TAU_NEUTRINO );
-  if ( !Event->is_mc_ ) {
-    return kUnknown;
-  }
+int CC1muNp1pi_particle::categorize_event(AnalysisEvent* Event)
+{
+  // Only meaningful for MC
+  if (!Event->is_mc_) return kParticleUnknown;
 
-  bool MCVertexInFV = point_inside_FV( this->true_FV(),
-    Event->mc_nu_vx_, Event->mc_nu_vy_, Event->mc_nu_vz_ );
-  if ( !MCVertexInFV ) {
-    return kOOFV;
-  }
+  // Use your already-defined particle selection index
+  if (proton_bdt_plot_candidate_idx_ == BOGUS_INDEX)
+    return kParticleUnknown;
 
-  bool isNC = ( Event->mc_nu_ccnc_ == NEUTRAL_CURRENT );
-  // DB Currently only one NC category is supported so test first. Will likely
-  // want to change this in the future
-  if ( isNC ) return kNC;
+  int idx = proton_bdt_plot_candidate_idx_;
 
-  if ( Event->mc_nu_pdg_ == ELECTRON_NEUTRINO ) {
-    return kNuECC;
-  }
-  if ( !(Event->mc_nu_pdg_ == MUON_NEUTRINO) ) {
-    return kOther;
-  }
+  int true_pdg = Event->pfp_true_pdg_->at(idx);
 
-  if ( this->is_event_mc_signal() ) {
-   
-      if ( Event->mc_nu_interaction_type_ == 0 ) {
-        return kSignalCCQE; // QE
-      }
-      else if ( Event->mc_nu_interaction_type_ == 10 ) {
-        return kSignalCCMEC; // MEC
-      }
-      else if ( Event->mc_nu_interaction_type_ == 1 ) {
-        return kSignalCCRES; // RES
-      }
-      else if (Event->mc_nu_interaction_type_ == 2) {
-        return kSignalCCDIS; // DIS
-      }
-      else if (Event->mc_nu_interaction_type_ == 3) {
-        return kSignalCCCOH; // COH
-      }
-      else return kSignalOther;
-  }
+  if (std::abs(true_pdg) == MUON) return kMuon;
+  if (true_pdg == PROTON) return kProton;
+  if (std::abs(true_pdg) == PI_PLUS) return kPion;
 
-  else if (!sig_mc_no_fs_pi0_){
-    return kNuMuCCpi0;
-  }
-
-
-  else if (sig_muonInMomRange_ && (sig_nCpi_in_Momentum_range_ < 1)){
-    return kNuMuCC0piXp;
-  }
-
-  return kNuMuCCOther;
+  return kOther;
 }
 
-
-
-void CC1muNp1pi::define_output_branches() {
+void CC1muNp1pi_particle::define_output_branches() {
 
   set_branch( &sig_isNuMu_, "mc_is_numu" );
   set_branch( &sig_inFV_, "mc_vertex_in_FV" );
@@ -1095,9 +1053,9 @@ void CC1muNp1pi::define_output_branches() {
   set_branch( &sel_golden_pion_, "golden_pion" );
   set_branch( &sel_tracks_flipped_, "tracks_flipped" );
 
-  // set_branch( &proton_bdt_score_, "proton_bdt_score" );
-  // set_branch( &proton_bdt_plot_presel_, "proton_bdt_plot_presel" );
-  // set_branch( &proton_bdt_plot_candidate_idx_, "proton_bdt_plot_candidate_idx" );
+  set_branch( &proton_bdt_score_, "proton_bdt_score" );
+  set_branch( &proton_bdt_plot_presel_, "proton_bdt_plot_presel" );
+  set_branch( &proton_bdt_plot_candidate_idx_, "proton_bdt_plot_candidate_idx" );
 
   set_branch( &n_reco_tracks_, "n_reco_tracks" );
   set_branch( &n_non_proton_like_, "n_non_proton_like" );
@@ -1222,7 +1180,7 @@ void CC1muNp1pi::define_output_branches() {
   //set_branch(&fsi_weight_, "fsi_weight");
 }
 
-void CC1muNp1pi::reset() {
+void CC1muNp1pi_particle::reset() {
 
   sig_isNuMu_ = false;
   sig_inFV_ = false;
@@ -1379,9 +1337,12 @@ void CC1muNp1pi::reset() {
   gki_Total_DeltaPhi3D_proton_ = BOGUS;
   gki_Total_DeltaPhi3D_muon_ = BOGUS;
 
+  proton_bdt_score_ = BOGUS;
+  proton_bdt_plot_presel_ = false;
+  proton_bdt_plot_candidate_idx_ = BOGUS_INDEX;
+
 }
 
-void CC1muNp1pi::define_category_map() {
-  // Category map for analyses with single charged pion final states.
-  categ_map_ = CC1muNp1pi_MAP;
+void CC1muNp1pi_particle::define_category_map() {
+  categ_map_ = CC1muNp1pi_MAPart;
 }

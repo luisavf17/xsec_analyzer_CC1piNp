@@ -5,6 +5,7 @@
 #include "XSecAnalyzer/Selections/CC1muNp0pi.hh"
 #include "XSecAnalyzer/Selections/CC1muNp1pi.hh"
 #include "XSecAnalyzer/Selections/CC1muNp1pi_sideband.hh"
+#include "XSecAnalyzer/Selections/CC1muNp1pi_particle.hh"
 #include "XSecAnalyzer/Selections/DummySelection.hh"
 #include "XSecAnalyzer/Selections/SelectionFactory.hh"
 
@@ -32,6 +33,9 @@ SelectionBase* SelectionFactory::CreateSelection(
   }
   else if ( selection_name == "CC1muNp1pi_sideband" ) {
     sel = new CC1muNp1pi_sideband;
+  }
+  else if ( selection_name == "CC1muNp1pi_particle" ) {
+    sel = new CC1muNp1pi_particle;
   }
   else {
     std::cerr << "Selection name requested: " << selection_name
